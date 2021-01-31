@@ -36,6 +36,7 @@ set -Eeuo pipefail
 # -----------------------------------------
 
 # Colors
+readonly WHITE=$(tput sgr0 && tput bold)
 readonly GREEN=$(tput sgr0 && tput setaf 2)
 readonly RED=$(tput bold && tput setaf 1)
 readonly YELLOW=$(tput sgr0 && tput setaf 3)
