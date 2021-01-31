@@ -172,7 +172,7 @@ for directory in "${MASTER_BUILD_DIR:-}"/*; do
 
     for package in "${PWD}"/*.pkg.tar.zst; do
       if [[ -f "/var/cache/pacman/pkg/${package##*/}" ]]; then
-        print_info "Package ${package##*/} is already built; skipping"
+        print_info "${YELLOW}Package ${package##*/} is already built, the cat is mildly annoyed 😾${NC}"
         continue
       fi
 
