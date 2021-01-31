@@ -109,7 +109,7 @@ exit_script_on_failure()
 #######################################
 print_info()
 {
-  printf "%sInfo: %s%s\n" "${WHITE}" "$1" "${NC}"
+  printf "%sInfo:%s %s\n" "${WHITE}" "${NC}" "$1"
 }
 
 # -----------------------------------------
