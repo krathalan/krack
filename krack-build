@@ -171,7 +171,7 @@ for directory in "${MASTER_BUILD_DIR:-}"/*; do
       sudo chown root:root /var/cache/pacman/pkg/"${package##*/}"
 
       print_info "Signing package and uploading to builds.krathalan.net"
-      gpg --default-key "${SIGNING_KEY}" --output "$1.sig" --detach-sig "$1"
+      gpg --default-key "${SIGNING_KEY}" --output "${package}.sig" --detach-sig "${package}"
       
       sleep 2
       rsync "${package}" "${package}.sig" krack-receive@krathalan.net:~/package-dropbox
