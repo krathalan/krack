@@ -36,7 +36,12 @@ set -Eeuo pipefail
 # -----------------------------------------
 
 # Colors
+readonly GREEN=$(tput sgr0 && tput setaf 2)
 readonly RED=$(tput bold && tput setaf 1)
+readonly YELLOW=$(tput sgr0 && tput setaf 3)
+readonly BLUE=$(tput sgr0 && tput setaf 4)
+readonly PURPLE=$(tput sgr0 && tput setaf 5)
+readonly CYAN=$(tput sgr0 && tput setaf 6)
 readonly NC=$(tput sgr0) # No color/turn off all tput attributes
 
 # Other
@@ -103,7 +108,7 @@ exit_script_on_failure()
 #######################################
 print_info()
 {
-  printf "Info: %s\n" "$1"
+  printf "%sInfo: %s%s\n" "${WHITE}" "$1" "${NC}"
 }
 
 # -----------------------------------------
@@ -142,15 +147,19 @@ for directory in "${MASTER_BUILD_DIR:-}"/*; do
     cd "${directory}" || exit_script_on_failure "Failed to \`cd\` into ${directory}"
 
     # Check out a fresh pkgbuild; pull any diffs
-    git checkout PKGBUILD
+    git checkout PKGBUILD > /dev/null
     git_output="$(git pull)"
 
     if [[ "${git_output}" == *"Already up to date."* ]] && [[ "${directory}" != *"git"* ]]; then
-      print_info "No need to build ${directory##*/}, it is already up-to-date and is not a -git package; skipping"
+      print_info "No need to build ${directory##*/}, it is already ${GREEN}up-to-date${NC} and is not a -git package; skipping"
       continue
     fi
 
-    print_info "Building package ${directory##*/}"
+    if [[ "${directory}" == *"git"* ]]; then
+      print_info "${directory##*/} is a -git package; ${BLUE}forcing update${NC}"
+    fi
+
+    print_info "${BLUE}Building package ${directory##*/}${NC}"
 
     # -c: Clean the chroot before building
     # -u: Update the working copy of the chroot before building
@@ -175,6 +184,8 @@ for directory in "${MASTER_BUILD_DIR:-}"/*; do
       
       sleep 2
       rsync "${package}" "${package}.sig" krack-receive@krathalan.net:~/package-dropbox
+
+      print_info "${GREEN}Package ${package##*/} built successfully, please give your cat a treat 😻${NC}"
     done
   fi
 done
