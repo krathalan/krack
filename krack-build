@@ -140,53 +140,72 @@ if [[ ! -e "${MAKECHROOTPKG_DIR}" ]]; then
   print_info "Done making ${MAKECHROOTPKG_DIR} makechrootpkg dir."
 fi
 
-print_info "Cleaning out master package directory before we begin building"
-clean_pkgbuild_dirs
+while true; do
+  print_info "${CYAN}Good morning, it is $(date) and it's time to build packages again${NC}"
 
-for directory in "${MASTER_BUILD_DIR:-}"/*; do
-  if [[ -d "${directory}" ]]; then
-    cd "${directory}" || exit_script_on_failure "Failed to \`cd\` into ${directory}"
+  print_info "Cleaning out master package directory before we begin building"
+  clean_pkgbuild_dirs
 
-    # Check out a fresh pkgbuild; pull any diffs
-    git checkout PKGBUILD > /dev/null
-    git_output="$(git pull)"
+  for directory in "${MASTER_BUILD_DIR:-}"/*; do
+    if [[ -d "${directory}" ]]; then
+      cd "${directory}" || exit_script_on_failure "Failed to \`cd\` into ${directory}"
 
-    if [[ "${git_output}" == *"Already up to date."* ]] && [[ "${directory}" != *"git"* ]]; then
-      print_info "No need to build ${directory##*/}, it is already ${GREEN}up-to-date${NC} and is not a -git package; skipping"
-      continue
-    fi
+      # Check out a fresh pkgbuild; pull any diffs
+      git checkout PKGBUILD > /dev/null
+      git_output="$(git pull)"
 
-    if [[ "${directory}" == *"git"* ]]; then
-      print_info "${directory##*/} is a -git package; ${BLUE}forcing update${NC}"
-    fi
-
-    print_info "${BLUE}Building package ${directory##*/}${NC}"
-
-    # -c: Clean the chroot before building
-    # -u: Update the working copy of the chroot before building
-    # -d: Bind directory into build chroot as read-write
-    # -r: The chroot dir to use
-    # Arguments passed to makechrootpkg after the
-    # end-of-options marker (--) will be passed to makepkg. 
-    makechrootpkg -c -u -d ${CCACHE_DIR}/:/ccache -r ${MAKECHROOTPKG_DIR} -- CCACHE_DIR=/ccache
-
-    for package in "${PWD}"/*.pkg.tar.zst; do
-      if [[ -f "/var/cache/pacman/pkg/${package##*/}" ]]; then
-        print_info "${YELLOW}Package ${package##*/} is already built, the cat is mildly annoyed 😾${NC}"
+      if [[ "${git_output}" == *"Already up to date."* ]] && [[ "${directory}" != *"git"* ]]; then
+        print_info "No need to build ${directory##*/}, it is already ${GREEN}up-to-date${NC} and is not a -git package; skipping"
         continue
       fi
 
-      print_info "Copying package to local pacman cache"
-      sudo cp "${package}" /var/cache/pacman/pkg/
-      sudo chown root:root /var/cache/pacman/pkg/"${package##*/}"
+      if [[ "${directory}" == *"git"* ]]; then
+        print_info "${directory##*/} is a -git package; ${BLUE}forcing update${NC}"
+      fi
 
-      print_info "Signing package and uploading to builds.krathalan.net"
-      gpg --default-key "${SIGNING_KEY}" --output "${package}.sig" --detach-sig "${package}"
-      
-      sleep 2
-      rsync "${package}" "${package}.sig" krack-receive@krathalan.net:~/package-dropbox
+      print_info "${BLUE}Building package ${directory##*/}${NC}"
 
-      print_info "${GREEN}Package ${package##*/} built successfully, please give your cat a treat 😻${NC}"
-    done
-  fi
+      # -c: Clean the chroot before building
+      # -u: Update the working copy of the chroot before building
+      # -d: Bind directory into build chroot as read-write
+      # -r: The chroot dir to use
+      # Arguments passed to makechrootpkg after the
+      # end-of-options marker (--) will be passed to makepkg. 
+      makechrootpkg -c -u -d ${CCACHE_DIR}/:/ccache -r ${MAKECHROOTPKG_DIR} -- CCACHE_DIR=/ccache
+
+      for package in "${PWD}"/*.pkg.tar.zst; do
+        if [[ -f "/var/cache/pacman/pkg/${package##*/}" ]]; then
+          print_info "${YELLOW}Package ${package##*/} is already built, the cat is mildly annoyed 😾${NC}"
+          continue
+        fi
+
+        print_info "Copying package to local pacman cache"
+        sudo cp "${package}" /var/cache/pacman/pkg/
+        sudo chown root:root /var/cache/pacman/pkg/"${package##*/}"
+
+        print_info "Signing package and uploading to builds.krathalan.net"
+        gpg --default-key "${SIGNING_KEY}" --output "${package}.sig" --detach-sig "${package}"
+        
+        sleep 2
+        rsync "${package}" "${package}.sig" krack-receive@krathalan.net:~/package-dropbox
+
+        print_info "${GREEN}Package ${package##*/} built successfully, please give your cat a treat 😻${NC}"
+      done
+    fi
+  done
+
+  # Custom printf here because we don't want a new line :)
+  printf "%sInfo:%s %sNapping for a while...%s " "${WHITE}" "${NC}" "${PURPLE}" "${NC}"
+
+  # https://unix.stackexchange.com/questions/225179/display-spinner-while-waiting-for-some-process-to-finish/225183#225183
+  sleep 86400 &
+  sleep_pid=$!
+  i=1
+  sp="/-\|"
+  echo -n ' '
+  while [ -d "/proc/$sleep_pid" ]
+  do
+    printf "\b%s" ${sp:i++%${#sp}:1}
+    sleep 0.75
+  done
 done
