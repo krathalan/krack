@@ -20,6 +20,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 set -Eeuo pipefail
-LOG_FILE="$(date +"%m-%d-%Y_%s").log"
+readonly LOG_DIR="${HOME}/.local/share/krack/logs"
+LOG_FILE="${LOG_DIR}/$(date +"%m-%d-%Y_%s").log"
 touch "${LOG_FILE}"
 bash /usr/lib/krack/krack-build | tee -a "${LOG_FILE}"
