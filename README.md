@@ -14,6 +14,14 @@ Set up a building user on the builder PC, and a receiving user on the remote PC.
 
 Your builder user will also need a GPG key for signing packages.
 
+You will also need to set up sudo permissions for your builder user to be able to use `makechrootpkg` without having to enter a password. You can do this by inserting this into `/etc/sudoers`:
+
+```
+builder-user ALL=(ALL) NOPASSWD:/usr/bin/makechrootpkg
+```
+
+Change `builder-user` to whatever the name of your builder user is.
+
 ### Pacman repo
 Set up a pacman repo on the remote PC at a directory of your choosing.
 
@@ -61,12 +69,14 @@ Krack will install the `ccache` package into the Arch chroot when it is created,
 ### Building packages
 Krack will create the directories `~/.local/share/krack` and `~/.cache/ccache` in the builder user's home directory. `~/.cache/ccache` will be bound to the build chroot at build time. 
 
-You should fill `~/.local/share/krack` with directories containing PKGBUILDS and other build files, as if just cloned from the AUR. You can do this manually:
+You should fill `~/.local/share/krack/packages` with directories containing PKGBUILDS and other build files, as if just cloned from the AUR. You can do this manually:
 
 > `$ cd ~/.local/share/krack`  
 > `$ git clone https://aur.archlinux.org/packagename.git`
 
 Put as many package directories as you like in here.
+
+If you keep a personal git repository of package directories, simply create a link (`ln -s`) to each package directory in `~/.local/share/krack/packages`.
 
 ### Requesting package builds
 Simply:
@@ -91,6 +101,9 @@ These script files can live in the package builds safely and will survive git pu
 `krack-postpull.sh` specifically is useful for applying custom patches to PKGBUILDs.
 
 Keep in mind that Krack will check for a `krack-request-build` file immediately after the `krack-postpull.sh` script. If you are `cd`-ing in your Krack scripts, ensure that the `krack-request-build` file is in the final package directory after both `krack-prepull.sh` and `krack-postpull.sh` to have Krack acknowledge your build request.
+
+### Logs
+`krack-build` will create a log each time it is invoked containing its output. These logs are kept in `~/.local/share/krack/logs`.
 
 ### krack-build options
 ```

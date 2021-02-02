@@ -45,10 +45,14 @@ readonly PURPLE=$(tput sgr0 && tput setaf 5)
 readonly CYAN=$(tput sgr0 && tput setaf 6)
 readonly NC=$(tput sgr0) # No color/turn off all tput attributes
 
+# Directories
+readonly DATA_DIR="/home/${BUILD_USER}/.local/share/krack"
+readonly LOG_DIR="${DATA_DIR}/logs"
+readonly MASTER_BUILD_DIR="${DATA_DIR}/packages"
+readonly CCACHE_DIR="/home/${BUILD_USER}/.cache/ccache"
+
 # Other
 readonly BUILD_USER="builder"
-readonly MASTER_BUILD_DIR="/home/${BUILD_USER}/aur"
-readonly CCACHE_DIR="/home/${BUILD_USER}/.cache/ccache"
 readonly MAKECHROOTPKG_DIR="/var/lib/makechrootpkg"
 readonly SIGNING_KEY="1C52FC395F059E60180BB53BCD9097F0E64296BB"
 readonly SCRIPT_NAME="${0##*/}"
@@ -116,18 +120,11 @@ print_info()
 # ---------------- Script -----------------
 # -----------------------------------------
 
-# makechrootpkg -c -u -d ${CCACHE_DIR}/:/ccache -r /var/lib/makechrootpkg -- CCACHE_DIR=/ccache
-
 [[ "$(whoami)" = "root" ]] &&
   exit_script_on_failure "This script should NOT be run as root (or sudo)!"
 
-[[ -z "${MASTER_BUILD_DIR:-}" ]] &&
-  exit_script_on_failure "Please set an environment variable \$MASTER_BUILD_DIR defining the directory containing all package directories (e.g. \"/home/builder/aur\")."
-
-if [[ ! -e "${CCACHE_DIR}" ]]; then
-  print_info "Making \$CCACHE_DIR ${CCACHE_DIR} directory"
-  mkdir -p "${CCACHE_DIR}"
-fi
+# Ensure all important directories exist
+mkdir -p "${MASTER_BUILD_DIR}" "${CCACHE_DIR}" "${LOG_DIR}"
 
 if [[ ! -e "${MAKECHROOTPKG_DIR}" ]]; then
   print_info "Makechrootpkg dir ${MAKECHROOTPKG_DIR} doesn't exist; making it..."
@@ -206,7 +203,7 @@ while true; do
         # If the build failed...
         if [[ "${build_outcome}" != 0 ]]; then
           print_info "${RED}Build for ${directory##*/} failed at $(date)${NC}"
-          
+
           [[ -f "${PWD}/krack-postbuild.sh" ]] && \
             print_info "Skipping postbuild script due to build failure"
 
