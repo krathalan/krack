@@ -188,13 +188,31 @@ while true; do
 
         print_info "${BLUE}Building package ${directory##*/}${NC}"
 
+        # Disable some safety stuff here to provide nice output and continue building other packages if one build fails
+        set +Ee
+
         # -c: Clean the chroot before building
         # -u: Update the working copy of the chroot before building
         # -d: Bind directory into build chroot as read-write
         # -r: The chroot dir to use
         # Arguments passed to makechrootpkg after the
         # end-of-options marker (--) will be passed to makepkg. 
-        makechrootpkg -c -u -d ${CCACHE_DIR}/:/ccache -r ${MAKECHROOTPKG_DIR} -- CCACHE_DIR=/ccache || print_info "${RED}Build for ${directory##*/} failed at $(date)${NC}"
+        makechrootpkg -c -u -d ${CCACHE_DIR}/:/ccache -r ${MAKECHROOTPKG_DIR} -- CCACHE_DIR=/ccache
+        build_outcome=$?
+
+        # Re-enforce safe exiting
+        set -Ee
+
+        # If the build failed...
+        if [[ "${build_outcome}" != 0 ]]; then
+          print_info "${RED}Build for ${directory##*/} failed at $(date)${NC}"
+          
+          [[ -f "${PWD}/krack-postbuild.sh" ]] && \
+            print_info "Skipping postbuild script due to build failure"
+
+          print_info "Continuing to the next build"
+          continue
+        fi
 
         if [[ -f "${PWD}/krack-postbuild.sh" ]]; then
           print_info "Executing krack-postbuild.sh"
