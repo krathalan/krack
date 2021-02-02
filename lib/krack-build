@@ -54,6 +54,7 @@ readonly CCACHE_DIR="${HOME}/.cache/ccache"
 readonly DATA_DIR="${HOME}/.local/share/krack"
 readonly LOG_DIR="${DATA_DIR}/logs"
 readonly MASTER_BUILD_DIR="${DATA_DIR}/packages"
+readonly PKG_CACHE_DIR="${DATA_DIR}/pkgcache"
 
 # -----------------------------------------
 # ------------- User variables ------------
@@ -118,17 +119,14 @@ print_info()
 # ---------------- Script -----------------
 # -----------------------------------------
 
-[[ "$(whoami)" = "root" ]] &&
+[[ "$(whoami)" == "root" ]] &&
   exit_script_on_failure "This script should NOT be run as root (or sudo)!"
 
 # Ensure all important directories exist
 mkdir -p "${MASTER_BUILD_DIR}" "${CCACHE_DIR}" "${LOG_DIR}"
 
 if [[ ! -e "${MAKECHROOTPKG_DIR}" ]]; then
-  print_info "Makechrootpkg dir ${MAKECHROOTPKG_DIR} doesn't exist; making it..."
-  sudo mkdir -p "${MAKECHROOTPKG_DIR}"
-  sudo mkarchroot "${MAKECHROOTPKG_DIR}"/root base-devel ccache
-  print_info "Done making ${MAKECHROOTPKG_DIR} makechrootpkg dir."
+  exit_script_on_failure "Makechrootpkg dir ${MAKECHROOTPKG_DIR} doesn't exist. Please run \`sudo krackctl create-chroot\`."
 fi
 
 if [[ "$*" == *"--start-asleep"* ]]; then
@@ -216,14 +214,13 @@ while true; do
         fi
 
         for package in "${PWD}"/*.pkg.tar.zst; do
-          if [[ -f "/var/cache/pacman/pkg/${package##*/}" ]]; then
-            print_info "${YELLOW}Package ${package##*/} is already built, the cat is mildly annoyed 😾${NC}"
+          if [[ -f "${PKG_CACHE_DIR}/${package##*/}" ]]; then
+            print_info "${YELLOW}Package ${package##*/} with the same version is already in the krack pkgcache; the cat is mildly annoyed 😾${NC}"
             continue
           fi
 
-          print_info "Copying package to local pacman cache"
-          sudo cp "${package}" /var/cache/pacman/pkg/
-          sudo chown root:root /var/cache/pacman/pkg/"${package##*/}"
+          print_info "Copying package to local krack-build pkgcache"
+          cp "${package}" "${PKG_CACHE_DIR}"
 
           print_info "Signing package and uploading to builds.krathalan.net"
           gpg --default-key "${SIGNING_KEY}" --output "${package}.sig" --detach-sig "${package}"
@@ -231,7 +228,7 @@ while true; do
           sleep 2
           rsync "${package}" "${package}.sig" krack-receive@krathalan.net:~/package-dropbox
 
-          print_info "${GREEN}Package ${package##*/} built successfully, please give your cat a treat 😻${NC}"
+          print_info "${GREEN}Package ${package##*/} built successfully; please give your cat a treat 😻${NC}"
         done
       fi
     done

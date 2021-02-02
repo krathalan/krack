@@ -86,7 +86,7 @@ Simply:
 
 in the directory of the package you wish to build next time `krack-build` wakes up, and it will be built regardless of update status. The file will be deleted the next time the package is built.
 
-Keep in mind that `*-git` packages are always rebuilt upon wakeup.
+Keep in mind that `*-git` packages are always rebuilt upon wakeup. Also note that `krack-build` won't send the packages over `rsync` if there's already a package with the same name in `~/.local/share/krack/cache`.
 
 ### Build hooks
 Krack supports pre-pull, post-pull, and post-build actions. Pre-pull actions occur before the `PKGBUILD` is checked out and a `git pull` is performed; post-pull happens after that. Post-build occurs after `makechrootpkg` has finished building the package.
@@ -117,10 +117,17 @@ Keep in mind that Krack will check for a `krack-request-build` file immediately 
 ### Commands
 These commands must be ran as the builder user.
 ```
+$ krackctl create-chroot  Creates the Arch chroot for makechrootpkg to build
+                          packages in.
+                          
 $ krackctl status  Prints the current status of the running krack-build.
 
 $ krackctl awaken  Wakes krack-build up to start building packages immediately.
                    Resets the next build time. If Krack is currently building
                    packages, builds will start immediately again after Krack is
                    finished with the current set.
+
+$ krackctl build-all  Touches krack-request-build in every package directory,
+                      forcing all builds the next time krack-build wakes up.
+                      Also clears the krack-build package cache.
 ```
