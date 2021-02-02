@@ -152,7 +152,8 @@ while true; do
 
       if [[ -f "${PWD}/krack-prepull.sh" ]]; then
         print_info "Executing krack-prepull.sh"
-        sh -x "${PWD}/krack-prepull.sh"
+        # shellcheck disable=SC1090
+        source "${PWD}/krack-prepull.sh"
       fi
 
       # Check out a fresh pkgbuild; pull any diffs
@@ -161,7 +162,8 @@ while true; do
 
       if [[ -f "${PWD}/krack-postpull.sh" ]]; then
         print_info "Executing krack-postpull.sh"
-        sh -x "${PWD}/krack-postpull.sh"
+        # shellcheck disable=SC1090
+        source "${PWD}/krack-postpull.sh"
       fi
 
       if [[ -f "${PWD}/krack-request-build" ]]; then
@@ -188,7 +190,8 @@ while true; do
 
       if [[ -f "${PWD}/krack-postbuild.sh" ]]; then
         print_info "Executing krack-postbuild.sh"
-        sh -x "${PWD}/krack-postbuild.sh"
+        # shellcheck disable=SC1090
+        source "${PWD}/krack-postbuild.sh"
       fi
 
       for package in "${PWD}"/*.pkg.tar.zst; do

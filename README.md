@@ -84,8 +84,10 @@ Simply create scripts in package directories with the appropriate names:
 - `krack-postpull.sh`
 - `krack-postbuild.sh`
 
-You can put whatever valid shell you want into these scripts. Krack will invoke them with the system's `sh` at the indicated point in time; by default `Bash` on Arch Linux but can be set to other popular shells like `dash`.
+You can put whatever valid shell you want into these scripts. Krack will `source` them at the indicated point in time.
 
 These script files can live in the package builds safely and will survive git pulls and rebuilds.
 
 `krack-postpull.sh` specifically is useful for applying custom patches to PKGBUILDs.
+
+Keep in mind that Krack will check for a `krack-request-build` file immediately after the `krack-postpull.sh` script.
