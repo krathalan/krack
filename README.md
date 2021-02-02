@@ -90,4 +90,4 @@ These script files can live in the package builds safely and will survive git pu
 
 `krack-postpull.sh` specifically is useful for applying custom patches to PKGBUILDs.
 
-Keep in mind that Krack will check for a `krack-request-build` file immediately after the `krack-postpull.sh` script.
+Keep in mind that Krack will check for a `krack-request-build` file immediately after the `krack-postpull.sh` script. If you are `cd`-ing in your Krack scripts, ensure that the `krack-request-build` file is in the final directory after `krack-postpull.sh` to have Krack acknowledge your build request.
