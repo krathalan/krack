@@ -129,10 +129,6 @@ if [[ ! -e "${CCACHE_DIR}" ]]; then
   mkdir -p "${CCACHE_DIR}"
 fi
 
-if ! pacman -Qq devtools > /dev/null; then
-  exit_script_on_failure "Please install the \'devtools\' package"
-fi
-
 if [[ ! -e "${MAKECHROOTPKG_DIR}" ]]; then
   print_info "Makechrootpkg dir ${MAKECHROOTPKG_DIR} doesn't exist; making it..."
   sudo mkdir -p "${MAKECHROOTPKG_DIR}"

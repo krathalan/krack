@@ -103,7 +103,7 @@ These commands must be ran as the builder user.
 ```
 $ krackctl status  Prints the current status of the running krack-build.
 
-$ krackctl start   Wakes krack-build up to start building packages immediately.
+$ krackctl awaken  Wakes krack-build up to start building packages immediately.
                    Resets the next build time. If Krack is currently building
                    packages, builds will start immediately again after Krack is
                    finished with the current set.
