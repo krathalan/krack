@@ -150,11 +150,24 @@ while true; do
     if [[ -d "${directory}" ]]; then
       cd "${directory}" || exit_script_on_failure "Failed to \`cd\` into ${directory}"
 
+      if [[ -f "${PWD}/krack-prepull.sh" ]]; then
+        print_info "Executing krack-prepull.sh"
+        sh -x "${PWD}/krack-prepull.sh"
+      fi
+
       # Check out a fresh pkgbuild; pull any diffs
       git checkout PKGBUILD > /dev/null
       git_output="$(git pull)"
 
-      if [[ "${git_output}" == *"Already up to date."* ]] && [[ "${directory}" != *"git"* ]]; then
+      if [[ -f "${PWD}/krack-postpull.sh" ]]; then
+        print_info "Executing krack-postpull.sh"
+        sh -x "${PWD}/krack-postpull.sh"
+      fi
+
+      if [[ -f "${PWD}/krack-request-build" ]]; then
+        rm -f "${PWD}/krack-request-build"
+        print_info "Build was requested manually; proceeding with build"
+      elif [[ "${git_output}" == *"Already up to date."* ]] && [[ "${directory}" != *"git"* ]]; then
         print_info "No need to build ${directory##*/}, it is already ${GREEN}up-to-date${NC} and is not a -git package; skipping"
         continue
       fi
@@ -172,6 +185,11 @@ while true; do
       # Arguments passed to makechrootpkg after the
       # end-of-options marker (--) will be passed to makepkg. 
       makechrootpkg -c -u -d ${CCACHE_DIR}/:/ccache -r ${MAKECHROOTPKG_DIR} -- CCACHE_DIR=/ccache
+
+      if [[ -f "${PWD}/krack-postbuild.sh" ]]; then
+        print_info "Executing krack-postbuild.sh"
+        sh -x "${PWD}/krack-postbuild.sh"
+      fi
 
       for package in "${PWD}"/*.pkg.tar.zst; do
         if [[ -f "/var/cache/pacman/pkg/${package##*/}" ]]; then

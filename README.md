@@ -67,3 +67,25 @@ You should fill `~/.local/share/krack` with directories containing PKGBUILDS and
 > `$ git clone https://aur.archlinux.org/packagename.git`
 
 Put as many package directories as you like in here.
+
+### Requesting package builds
+Simply:
+
+> `$ touch krack-request-build`
+
+in the directory of the package you wish to build next time `krack-build` wakes up, and it will be built regardless of update status. The file will be deleted the next time the package is built.
+
+### Build hooks
+Krack supports pre-pull, post-pull, and post-build actions. Pre-pull actions occur before the `PKGBUILD` is checked out and a `git pull` is performed; post-pull happens after that. Post-build occurs after `makechrootpkg` has finished building the package.
+
+Simply create scripts in package directories with the appropriate names:
+
+- `krack-prepull.sh`
+- `krack-postpull.sh`
+- `krack-postbuild.sh`
+
+You can put whatever valid shell you want into these scripts. Krack will invoke them with the system's `sh` at the indicated point in time; by default `Bash` on Arch Linux but can be set to other popular shells like `dash`.
+
+These script files can live in the package builds safely and will survive git pulls and rebuilds.
+
+`krack-postpull.sh` specifically is useful for applying custom patches to PKGBUILDs.
