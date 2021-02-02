@@ -45,17 +45,15 @@ readonly PURPLE=$(tput sgr0 && tput setaf 5)
 readonly CYAN=$(tput sgr0 && tput setaf 6)
 readonly NC=$(tput sgr0) # No color/turn off all tput attributes
 
+# Source user conf
+# shellcheck disable=SC1091
+source /etc/krack/build.conf
+
 # Directories
-readonly DATA_DIR="/home/${BUILD_USER}/.local/share/krack"
+readonly CCACHE_DIR="${HOME}/.cache/ccache"
+readonly DATA_DIR="${HOME}/.local/share/krack"
 readonly LOG_DIR="${DATA_DIR}/logs"
 readonly MASTER_BUILD_DIR="${DATA_DIR}/packages"
-readonly CCACHE_DIR="/home/${BUILD_USER}/.cache/ccache"
-
-# Other
-readonly BUILD_USER="builder"
-readonly MAKECHROOTPKG_DIR="/var/lib/makechrootpkg"
-readonly SIGNING_KEY="1C52FC395F059E60180BB53BCD9097F0E64296BB"
-readonly SCRIPT_NAME="${0##*/}"
 
 # -----------------------------------------
 # ------------- User variables ------------
@@ -194,7 +192,7 @@ while true; do
         # -r: The chroot dir to use
         # Arguments passed to makechrootpkg after the
         # end-of-options marker (--) will be passed to makepkg. 
-        makechrootpkg -c -u -d ${CCACHE_DIR}/:/ccache -r ${MAKECHROOTPKG_DIR} -- CCACHE_DIR=/ccache
+        makechrootpkg -c -u -d "${CCACHE_DIR}"/:/ccache -r "${MAKECHROOTPKG_DIR}" -- CCACHE_DIR=/ccache
         build_outcome=$?
 
         # Re-enforce safe exiting

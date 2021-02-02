@@ -30,7 +30,6 @@ Then you need to specify these in the conf file at `/etc/krack/build.conf` on th
 
 ```
 #!/usr/bin/env bash
-readonly BUILD_USER="builder"
 readonly MAKECHROOTPKG_DIR="/var/lib/makechrootpkg"
 readonly SIGNING_KEY="1C52FC395F059E60180BB53BCD9097F0E64296BB"
 readonly DROPBOX_PATH="krack-receive@krathalan.net:/home/krack-receive/package-dropbox"
