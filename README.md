@@ -28,7 +28,7 @@ readonly SIGNING_KEY="1C52FC395F059E60180BB53BCD9097F0E64296BB"
 readonly DROPBOX_PATH="krack-receive@krathalan.net:/home/krack-receive/package-dropbox"
 ```
 
-`$MAKECHROOTPKG_DIR` is where the Arch chroot will live that will be used to build packages. You can specify any directory you like here; Krack will create the Arch chroot for you once you try to build a package. `$SIGNING_KEY` should be the GPG key ID of the signing key you wish to use, in the `$BUILD_USER`'s keyring. `$DROPBOX_PATH` is the path where packages will be pushed to over SSH.
+`$MAKECHROOTPKG_DIR` is where the Arch chroot will live that will be used to build packages. You can specify any directory you like here; Krack will create the Arch chroot for you once you try to build a package. `$SIGNING_KEY` should be the GPG key ID of the signing key you wish to use, in the `$BUILD_USER`'s keyring. `$DROPBOX_PATH` is the path where packages will be pushed to over SSH to the receiving user on the remote PC.
 
 And in the conf file `/etc/krack/receive.conf` on the remote PC:
 
@@ -56,6 +56,14 @@ Set up ssh-agent on the builder user. More information here: https://wiki.archli
 You will need tmux installed on the builder PC so that you can leave a session logged in. This is necessary so that ssh-agent and gpg-agent will work for signing and sending packages over SSH.
 
 ### Ccache compliance
+Krack will install the `ccache` package into the Arch chroot when it is created, and will handle binding the `$CCACHE_DIR` from your build user's home directory to the chroot for building. Krack depends on `ccache` on the builder PC and in the build chroot. If you point Krack to a build chroot you already have, make sure it has `ccache` installed.
 
 ### Building packages
-Krack will create the directories `~/aur` and `~/.cache/ccache` in the builder user's home directory.
+Krack will create the directories `~/.local/share/krack` and `~/.cache/ccache` in the builder user's home directory. `~/.cache/ccache` will be bound to the build chroot at build time. 
+
+You should fill `~/.local/share/krack` with directories containing PKGBUILDS and other build files, as if just cloned from the AUR. You can do this manually:
+
+> `$ cd ~/.local/share/krack`  
+> `$ git clone https://aur.archlinux.org/packagename.git`
+
+Put as many package directories as you like in here.
