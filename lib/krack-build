@@ -226,7 +226,7 @@ while true; do
           gpg --default-key "${SIGNING_KEY}" --output "${package}.sig" --detach-sig "${package}"
           
           sleep 2
-          rsync "${package}" "${package}.sig" krack-receive@krathalan.net:~/package-dropbox
+          rsync -a --progress "${package}" "${package}.sig" krack-receive@krathalan.net:~/package-dropbox
 
           print_info "${GREEN}Package ${package##*/} built successfully; please give your cat a treat 😻${NC}"
         done
