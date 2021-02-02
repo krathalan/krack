@@ -60,7 +60,7 @@ This will make systemd instatiate user sessions upon login via SSH. This will al
 Set up ssh-agent on the builder user. More information here: https://wiki.archlinux.org/index.php/SSH_keys#Start_ssh-agent_with_systemd_user
 
 ### Tmux
-You will need tmux installed on the builder PC so that you can leave a session logged in. This is necessary so that ssh-agent and gpg-agent will work for signing and sending packages over SSH.
+You will need tmux installed on the builder PC so that you can leave a session logged in. This is necessary so that ssh-agent and gpg-agent will work for signing and sending packages over SSH. It also lets you easily attach to the running `krack-build` instance.
 
 ### Ccache compliance
 Krack will install the `ccache` package into the Arch chroot when it is created, and will handle binding the `$CCACHE_DIR` from your build user's home directory to the chroot for building. Krack depends on `ccache` on the builder PC and in the build chroot. If you point Krack to a build chroot you already have, make sure it has `ccache` installed.
@@ -70,7 +70,7 @@ Krack will create the directories `~/.local/share/krack` and `~/.cache/ccache` i
 
 You should fill `~/.local/share/krack/packages` with directories containing PKGBUILDS and other build files, as if just cloned from the AUR. You can do this manually:
 
-> `$ cd ~/.local/share/krack`  
+> `$ cd ~/.local/share/krack/packages`  
 > `$ git clone https://aur.archlinux.org/packagename.git`
 
 Put as many package directories as you like in here.
@@ -83,6 +83,8 @@ Simply:
 > `$ touch krack-request-build`
 
 in the directory of the package you wish to build next time `krack-build` wakes up, and it will be built regardless of update status. The file will be deleted the next time the package is built.
+
+Keep in mind that `*-git` packages are always rebuilt upon wakeup.
 
 ### Build hooks
 Krack supports pre-pull, post-pull, and post-build actions. Pre-pull actions occur before the `PKGBUILD` is checked out and a `git pull` is performed; post-pull happens after that. Post-build occurs after `makechrootpkg` has finished building the package.
