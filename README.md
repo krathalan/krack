@@ -70,8 +70,10 @@ Krack will create the directories `~/.local/share/krack` and `~/.cache/ccache` i
 
 You should fill `~/.local/share/krack/packages` with directories containing PKGBUILDS and other build files, as if just cloned from the AUR. You can do this manually:
 
-> `$ cd ~/.local/share/krack/packages`  
-> `$ git clone https://aur.archlinux.org/packagename.git`
+```
+$ cd ~/.local/share/krack/packages
+$ git clone https://aur.archlinux.org/packagename.git
+```
 
 Put as many package directories as you like in here.
 
