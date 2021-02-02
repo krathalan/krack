@@ -123,7 +123,7 @@ print_info()
   exit_script_on_failure "This script should NOT be run as root (or sudo)!"
 
 # Ensure all important directories exist
-mkdir -p "${MASTER_BUILD_DIR}" "${CCACHE_DIR}" "${LOG_DIR}"
+mkdir -p "${MASTER_BUILD_DIR}" "${CCACHE_DIR}" "${LOG_DIR}" "${PKG_CACHE_DIR}"
 
 if [[ ! -e "${MAKECHROOTPKG_DIR}" ]]; then
   exit_script_on_failure "Makechrootpkg dir ${MAKECHROOTPKG_DIR} doesn't exist. Please run \`sudo krackctl create-chroot\`."
