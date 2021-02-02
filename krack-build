@@ -141,9 +141,9 @@ if [[ ! -e "${MAKECHROOTPKG_DIR}" ]]; then
 fi
 
 if [[ "$*" == *"--start-asleep"* ]]; then
-  readonly START_ASLEEP="false"
-else
   readonly START_ASLEEP="true"
+else
+  readonly START_ASLEEP="false"
 fi
 
 SKIP_COMPLETE="false"
