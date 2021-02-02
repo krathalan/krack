@@ -169,7 +169,7 @@ while true; do
         fi
 
         # Check out a fresh pkgbuild; pull any diffs
-        git checkout PKGBUILD > /dev/null
+        git checkout PKGBUILD &> /dev/null
         git_output="$(git pull)"
 
         if [[ -f "${PWD}/krack-postpull.sh" ]]; then
