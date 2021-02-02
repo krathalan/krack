@@ -140,7 +140,7 @@ if [[ ! -e "${MAKECHROOTPKG_DIR}" ]]; then
   print_info "Done making ${MAKECHROOTPKG_DIR} makechrootpkg dir."
 fi
 
-if [[ "$*" == "--start-asleep" ]]; then
+if [[ "$*" == *"--start-asleep"* ]]; then
   readonly START_ASLEEP="false"
 else
   readonly START_ASLEEP="true"
