@@ -90,4 +90,21 @@ These script files can live in the package builds safely and will survive git pu
 
 `krack-postpull.sh` specifically is useful for applying custom patches to PKGBUILDs.
 
-Keep in mind that Krack will check for a `krack-request-build` file immediately after the `krack-postpull.sh` script. If you are `cd`-ing in your Krack scripts, ensure that the `krack-request-build` file is in the final directory after `krack-postpull.sh` to have Krack acknowledge your build request.
+Keep in mind that Krack will check for a `krack-request-build` file immediately after the `krack-postpull.sh` script. If you are `cd`-ing in your Krack scripts, ensure that the `krack-request-build` file is in the final package directory after both `krack-prepull.sh` and `krack-postpull.sh` to have Krack acknowledge your build request.
+
+### krack-build options
+```
+--start-asleep   Starts krack-build as if it had just finished building
+                 packages. Useful after updating Krack.
+```
+
+### Commands
+These commands must be ran as the builder user.
+```
+$ krackctl status  Prints the current status of the running krack-build.
+
+$ krackctl start   Wakes krack-build up to start building packages immediately.
+                   Resets the next build time. If Krack is currently building
+                   packages, builds will start immediately again after Krack is
+                   finished with the current set.
+```
