@@ -194,7 +194,7 @@ while true; do
         # -r: The chroot dir to use
         # Arguments passed to makechrootpkg after the
         # end-of-options marker (--) will be passed to makepkg. 
-        makechrootpkg -c -u -d ${CCACHE_DIR}/:/ccache -r ${MAKECHROOTPKG_DIR} -- CCACHE_DIR=/ccache
+        makechrootpkg -c -u -d ${CCACHE_DIR}/:/ccache -r ${MAKECHROOTPKG_DIR} -- CCACHE_DIR=/ccache || print_info "${RED}Build for ${directory##*/} failed at $(date)${NC}"
 
         if [[ -f "${PWD}/krack-postbuild.sh" ]]; then
           print_info "Executing krack-postbuild.sh"
