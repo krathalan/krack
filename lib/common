@@ -27,5 +27,6 @@ readonly STATUS_DIR="${DATA_DIR}/.status"
 # Status files
 readonly STATUS_STATE_FILE="${STATUS_DIR}/state"
 readonly STATUS_SUBSTATE_FILE="${STATUS_DIR}/substate"
+readonly STATUS_DATE_BUILD_START_FILE="${STATUS_DIR}/build-start"
+readonly STATUS_DATE_MAKE_START_FILE="${STATUS_DIR}/make-start"
 readonly STATUS_IMPORTANT_MESSAGE_FILE="${STATUS_DIR}/important"
-readonly STATUS_LATEST_MESSAGE_FILE="${STATUS_DIR}/latest"

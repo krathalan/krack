@@ -136,16 +136,35 @@ print_info()
 
 status()
 {
+  local start_time_unix
+  local time_now_unix
+  local date_diff
+
   [[ ! -d "${STATUS_DIR}" ]] &&
     exit_script_on_failure "Status files not found. Have you ran krack-build yet?"
 
   printf "Krack version %s\n" "${VERSION}"
-  printf "State: %s\n" "$(<"${STATUS_STATE_FILE}")"
-  if grep building "${STATUS_STATE_FILE}"; then
-    printf "Substate: %s\n" "$(<"${STATUS_SUBSTATE_FILE}")"
+  printf "State: %s" "$(<"${STATUS_STATE_FILE}")"
+
+  if grep -q building "${STATUS_STATE_FILE}"; then
+    # Calculate how long state has been "building"
+    start_time_unix="$("${STATUS_DATE_BUILD_START_FILE}")"
+    time_now_unix="$(date +%s)"
+    date_diff="$(( time_now_unix - start_time_unix ))"
+    printf ", running for %s" "$(date -d@${date_diff} -u +%H:%M:%S)"
+
+    printf "\nSubstate: %s" "$(<"${STATUS_SUBSTATE_FILE}")"
+    
+    if grep -q building "${STATUS_STATE_FILE}"; then
+      # Calculate how long state has been "making"
+      start_time_unix="$("${STATUS_DATE_MAKE_START_FILE}")"
+      date_diff="$(( time_now_unix - start_time_unix ))"
+      printf ", running for %s" "$(date -d@${date_diff} -u +%H:%M:%S)"
+    fi
   fi
+
+  printf "\n"
   printf "Latest important message: %s\n" "$(<"${STATUS_IMPORTANT_MESSAGE_FILE}")"
-  printf "Latest informational message: %s\n" "$(<"${STATUS_LATEST_MESSAGE_FILE}")"
 }
 
 # -----------------------------------------

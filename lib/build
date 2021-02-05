@@ -112,8 +112,7 @@ exit_script_on_failure()
 #######################################
 print_info()
 {
-  rm -f "${STATUS_LATEST_MESSAGE_FILE}"
-  printf "%sInfo:%s %s\n" "${WHITE}" "${NC}" "$1" | tee -a "${STATUS_LATEST_MESSAGE_FILE}"
+  printf "%sInfo:%s %s\n" "${WHITE}" "${NC}" "$1"
 }
 
 # Stuff for $(krackctl status)
@@ -130,7 +129,9 @@ state()
     starting) state_helper "starting up..." ;;
     death) state_helper "pronounced dead at $(date). Kitty is sad 😿" ;;
     sleeping) state_helper "sleeping until ${NEXT_WAKE}" ;;
-    building) state_helper "building (started at $(date))" ;;
+    building) state_helper "building (started at $(date +%r))" 
+              date +%s > "${STATUS_DATE_BUILD_START_FILE}"
+              ;;
     *) state_helper "unknown. Contact developer at srht@krathalan.net" ;;
   esac
 }
@@ -143,7 +144,9 @@ state_helper()
 substate()
 {
   case "$1" in
-    making) substate_helper "making ${current_package} package" ;;
+    making) substate_helper "making ${current_package} package (started at $(date +%r))" 
+            date +%s > "${STATUS_DATE_MAKE_START_FILE}"
+            ;;
     preparing) substate_helper "preparing for build" ;;
     uploading) substate_helper "uploading built ${current_package} package" ;;
   esac
@@ -169,7 +172,7 @@ mkdir -p "${MASTER_BUILD_DIR}" \
          "${STATUS_DIR}"
 
 state "starting"
-printf " " | tee "${STATUS_IMPORTANT_MESSAGE_FILE}" "${STATUS_LATEST_MESSAGE_FILE}"
+printf "nothing yet :)" > "${STATUS_IMPORTANT_MESSAGE_FILE}"
 
 if [[ ! -e "${MAKECHROOTPKG_DIR}" ]]; then
   exit_script_on_failure "Makechrootpkg dir ${MAKECHROOTPKG_DIR} doesn't exist. Please run \`sudo krackctl create-chroot\`."
