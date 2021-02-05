@@ -155,7 +155,7 @@ status()
 
     printf "\nSubstate: %s" "$(<"${STATUS_SUBSTATE_FILE}")"
     
-    if grep -q making "${STATUS_STATE_FILE}"; then
+    if grep -q making "${STATUS_SUBSTATE_FILE}"; then
       # Calculate how long state has been "making"
       start_time_unix="$(<"${STATUS_DATE_MAKE_START_FILE}")"
       date_diff="$(( time_now_unix - start_time_unix ))"
