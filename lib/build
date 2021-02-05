@@ -158,9 +158,6 @@ substate_helper()
 # ---------------- Script -----------------
 # -----------------------------------------
 
-state "starting"
-printf " " | tee "${STATUS_IMPORTANT_MESSAGE_FILE}" "${STATUS_LATEST_MESSAGE_FILE}"
-
 [[ "$(whoami)" == "root" ]] &&
   exit_script_on_failure "This script should NOT be run as root (or sudo)!"
 
@@ -170,6 +167,9 @@ mkdir -p "${MASTER_BUILD_DIR}" \
          "${LOG_DIR}" \
          "${PKG_CACHE_DIR}" \
          "${STATUS_DIR}"
+
+state "starting"
+printf " " | tee "${STATUS_IMPORTANT_MESSAGE_FILE}" "${STATUS_LATEST_MESSAGE_FILE}"
 
 if [[ ! -e "${MAKECHROOTPKG_DIR}" ]]; then
   exit_script_on_failure "Makechrootpkg dir ${MAKECHROOTPKG_DIR} doesn't exist. Please run \`sudo krackctl create-chroot\`."
