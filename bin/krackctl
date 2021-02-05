@@ -148,16 +148,16 @@ status()
 
   if grep -q building "${STATUS_STATE_FILE}"; then
     # Calculate how long state has been "building"
-    start_time_unix="$("${STATUS_DATE_BUILD_START_FILE}")"
+    start_time_unix="$(<"${STATUS_DATE_BUILD_START_FILE}")"
     time_now_unix="$(date +%s)"
     date_diff="$(( time_now_unix - start_time_unix ))"
     printf ", running for %s" "$(date -d@${date_diff} -u +%H:%M:%S)"
 
     printf "\nSubstate: %s" "$(<"${STATUS_SUBSTATE_FILE}")"
     
-    if grep -q building "${STATUS_STATE_FILE}"; then
+    if grep -q making "${STATUS_STATE_FILE}"; then
       # Calculate how long state has been "making"
-      start_time_unix="$("${STATUS_DATE_MAKE_START_FILE}")"
+      start_time_unix="$(<"${STATUS_DATE_MAKE_START_FILE}")"
       date_diff="$(( time_now_unix - start_time_unix ))"
       printf ", running for %s" "$(date -d@${date_diff} -u +%H:%M:%S)"
     fi
