@@ -40,7 +40,7 @@ NEXT_WAKE=""
 
 # Source a lot of common (between krack scripts) variables
 # shellcheck disable=SC1091
-source /usr/lib/krack/krack-common
+source /usr/lib/krack/common
 
 # Source user conf
 # shellcheck disable=SC1091
