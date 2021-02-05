@@ -35,36 +35,16 @@ set -Eeuo pipefail
 # ----------- Program variables -----------
 # -----------------------------------------
 
-# Colors
-readonly WHITE=$(tput sgr0 && tput bold)
-readonly GREEN=$(tput sgr0 && tput setaf 2)
-readonly RED=$(tput bold && tput setaf 1)
-readonly YELLOW=$(tput sgr0 && tput setaf 3)
-readonly BLUE=$(tput sgr0 && tput setaf 4)
-readonly PURPLE=$(tput sgr0 && tput setaf 5)
-readonly CYAN=$(tput sgr0 && tput setaf 6)
-readonly NC=$(tput sgr0) # No color/turn off all tput attributes
-
 # Misc
 NEXT_WAKE=""
+
+# Source a lot of common (between krack scripts) variables
+# shellcheck disable=SC1091
+source /usr/lib/krack/krack-common
 
 # Source user conf
 # shellcheck disable=SC1091
 source /etc/krack/build.conf
-
-# Directories
-readonly CCACHE_DIR="${HOME}/.cache/ccache"
-readonly DATA_DIR="${HOME}/.local/share/krack"
-readonly LOG_DIR="${DATA_DIR}/logs"
-readonly MASTER_BUILD_DIR="${DATA_DIR}/packages"
-readonly PKG_CACHE_DIR="${DATA_DIR}/pkgcache"
-readonly STATUS_DIR="${DATA_DIR}/.status"
-
-# Status files
-readonly STATUS_STATE_FILE="${STATUS_DIR}/state"
-readonly STATUS_SUBSTATE_FILE="${STATUS_DIR}/substate"
-readonly STATUS_IMPORTANT_MESSAGE_FILE="${STATUS_DIR}/important"
-readonly STATUS_LATEST_MESSAGE_FILE="${STATUS_DIR}/latest"
 
 # -----------------------------------------
 # --------------- Functions ---------------
@@ -179,6 +159,7 @@ substate_helper()
 # -----------------------------------------
 
 state "starting"
+printf " " | tee "${STATUS_IMPORTANT_MESSAGE_FILE}" "${STATUS_LATEST_MESSAGE_FILE}"
 
 [[ "$(whoami)" == "root" ]] &&
   exit_script_on_failure "This script should NOT be run as root (or sudo)!"

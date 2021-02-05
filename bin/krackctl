@@ -35,21 +35,21 @@ set -Eeuo pipefail
 # ----------- Program variables -----------
 # -----------------------------------------
 
-# Colors
-readonly RED=$(tput bold && tput setaf 1)
-readonly NC=$(tput sgr0) # No color/turn off all tput attributes
+# Source a lot of common (between krack scripts) variables
+# shellcheck disable=SC1091
+source /usr/lib/krack/krack-common
 
 # Other
-readonly DATA_DIR="${HOME}/.local/share/krack"
 readonly SCRIPT_NAME="${0##*/}"
-
-# -----------------------------------------
-# ------------- User variables ------------
-# -----------------------------------------
 
 # -----------------------------------------
 # --------------- Functions ---------------
 # -----------------------------------------
+
+awaken()
+{
+  touch "${STATUS_DIR}/krack-request-awaken"
+}
 
 build_all()
 {
@@ -134,6 +134,20 @@ print_info()
   printf "%sInfo:%s %s\n" "${WHITE}" "${NC}" "$1"
 }
 
+status()
+{
+  [[ ! -d "${STATUS_DIR}" ]] &&
+    exit_script_on_failure "Status files not found. Have you ran krack-build yet?"
+
+  printf "Krack version %s\n" "${VERSION}"
+  printf "State: %s\n" "$(<"${STATUS_STATE_FILE}")"
+  if grep building "${STATUS_STATE_FILE}"; then
+    printf "Substate: %s\n" "$(<"${STATUS_SUBSTATE_FILE}")"
+  fi
+  printf "Latest important message: %s\n" "$(<"${STATUS_IMPORTANT_MESSAGE_FILE}")"
+  printf "Latest informational message: %s\n" "$(<"${STATUS_LATEST_MESSAGE_FILE}")"
+}
+
 # -----------------------------------------
 # ---------------- Script -----------------
 # -----------------------------------------
@@ -142,7 +156,9 @@ print_info()
   exit_script_on_failure "This script should NOT be run as root (or sudo)!"
 
 case "$1" in
+  awaken) awaken ;;
   build-all) build_all ;;
   create-chroot) create_chroot ;;
+  status) status ;;
   *) print_help ;;
 esac
