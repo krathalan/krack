@@ -37,7 +37,7 @@ set -Eeuo pipefail
 
 # Source a lot of common (between krack scripts) variables
 # shellcheck disable=SC1091
-source /usr/lib/krack/krack-common
+source /usr/lib/krack/common
 
 # Other
 readonly SCRIPT_NAME="${0##*/}"
