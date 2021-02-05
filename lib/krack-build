@@ -45,6 +45,9 @@ readonly PURPLE=$(tput sgr0 && tput setaf 5)
 readonly CYAN=$(tput sgr0 && tput setaf 6)
 readonly NC=$(tput sgr0) # No color/turn off all tput attributes
 
+# Misc
+NEXT_WAKE=""
+
 # Source user conf
 # shellcheck disable=SC1091
 source /etc/krack/build.conf
@@ -55,14 +58,30 @@ readonly DATA_DIR="${HOME}/.local/share/krack"
 readonly LOG_DIR="${DATA_DIR}/logs"
 readonly MASTER_BUILD_DIR="${DATA_DIR}/packages"
 readonly PKG_CACHE_DIR="${DATA_DIR}/pkgcache"
+readonly STATUS_DIR="${DATA_DIR}/.status"
 
-# -----------------------------------------
-# ------------- User variables ------------
-# -----------------------------------------
+# Status files
+readonly STATUS_STATE_FILE="${STATUS_DIR}/state"
+readonly STATUS_SUBSTATE_FILE="${STATUS_DIR}/substate"
+readonly STATUS_IMPORTANT_MESSAGE_FILE="${STATUS_DIR}/important"
+readonly STATUS_LATEST_MESSAGE_FILE="${STATUS_DIR}/latest"
 
 # -----------------------------------------
 # --------------- Functions ---------------
 # -----------------------------------------
+
+check_awaken_request()
+{
+  if [[ -f "${STATUS_DIR}/krack-request-awaken" ]]; then
+    # Clean up request file
+    rm -f "${STATUS_DIR}/krack-request-awaken"
+    # Clean up our sleeping child....
+    kill "${sleep_pid}"
+    return 0 # Awaken!
+  else
+    return 1 # Slumber...
+  fi
+}
 
 # Removes old packages built with make(chroot)pkg
 clean_pkgbuild_dirs()
@@ -96,6 +115,7 @@ clean_pkgbuild_dirs()
 #######################################
 exit_script_on_failure()
 {
+  state "death"
   printf "%sError%s: %s\n" "${RED}" "${NC}" "$1" >&2
   exit 1
 }
@@ -112,18 +132,63 @@ exit_script_on_failure()
 #######################################
 print_info()
 {
-  printf "%sInfo:%s %s\n" "${WHITE}" "${NC}" "$1"
+  rm -f "${STATUS_LATEST_MESSAGE_FILE}"
+  printf "%sInfo:%s %s\n" "${WHITE}" "${NC}" "$1" | tee -a "${STATUS_LATEST_MESSAGE_FILE}"
+}
+
+# Stuff for $(krackctl status)
+
+important()
+{
+  printf "%s" "$1" > "${STATUS_IMPORTANT_MESSAGE_FILE}"
+  printf "%s!!!!: %s%s\n" "${RED}" "$1" "${NC}"
+}
+
+state()
+{
+  case "$1" in
+    starting) state_helper "starting up..." ;;
+    death) state_helper "pronounced dead at $(date). Kitty is sad 😿" ;;
+    sleeping) state_helper "sleeping until ${NEXT_WAKE}" ;;
+    building) state_helper "building (started at $(date))" ;;
+    *) state_helper "unknown. Contact developer at srht@krathalan.net" ;;
+  esac
+}
+
+state_helper()
+{
+  printf "%s" "$1" > "${STATUS_STATE_FILE}"
+}
+
+substate()
+{
+  case "$1" in
+    making) substate_helper "making ${current_package} package" ;;
+    preparing) substate_helper "preparing for build" ;;
+    uploading) substate_helper "uploading built ${current_package} package" ;;
+  esac
+}
+
+substate_helper()
+{
+  printf "%s" "$1" > "${STATUS_SUBSTATE_FILE}"
 }
 
 # -----------------------------------------
 # ---------------- Script -----------------
 # -----------------------------------------
 
+state "starting"
+
 [[ "$(whoami)" == "root" ]] &&
   exit_script_on_failure "This script should NOT be run as root (or sudo)!"
 
 # Ensure all important directories exist
-mkdir -p "${MASTER_BUILD_DIR}" "${CCACHE_DIR}" "${LOG_DIR}" "${PKG_CACHE_DIR}"
+mkdir -p "${MASTER_BUILD_DIR}" \
+         "${CCACHE_DIR}" \
+         "${LOG_DIR}" \
+         "${PKG_CACHE_DIR}" \
+         "${STATUS_DIR}"
 
 if [[ ! -e "${MAKECHROOTPKG_DIR}" ]]; then
   exit_script_on_failure "Makechrootpkg dir ${MAKECHROOTPKG_DIR} doesn't exist. Please run \`sudo krackctl create-chroot\`."
@@ -138,6 +203,7 @@ fi
 SKIP_COMPLETE="false"
 
 while true; do
+  state "building"
   print_info "${CYAN}Good morning, it is $(date) and it's time to build packages again${NC}"
 
   if [[ "${SKIP_COMPLETE}" == "false" ]] && [[ "${START_ASLEEP}" == "true" ]]; then
@@ -150,6 +216,9 @@ while true; do
     for directory in "${MASTER_BUILD_DIR:-}"/*; do
       if [[ -d "${directory}" ]]; then
         cd "${directory}" || exit_script_on_failure "Failed to \`cd\` into ${directory}"
+        current_package="${directory##*/}"
+
+        substate "preparing"
 
         if [[ -f "${PWD}/krack-prepull.sh" ]]; then
           print_info "Executing krack-prepull.sh"
@@ -171,15 +240,16 @@ while true; do
           rm -f "${PWD}/krack-request-build"
           print_info "Build was requested manually; proceeding with build"
         elif [[ "${git_output}" == *"Already up to date."* ]] && [[ "${directory}" != *"git"* ]]; then
-          print_info "No need to build ${directory##*/}, it is already ${GREEN}up-to-date${NC} and is not a -git package; skipping"
+          print_info "No need to build ${current_package}, it is already ${GREEN}up-to-date${NC} and is not a -git package; skipping"
           continue
         fi
 
         if [[ "${directory}" == *"git"* ]]; then
-          print_info "${directory##*/} is a -git package; ${BLUE}forcing update${NC}"
+          print_info "${current_package} is a -git package; ${BLUE}forcing update${NC}"
         fi
 
-        print_info "${BLUE}Building package ${directory##*/}${NC}"
+        substate "making"
+        print_info "${BLUE}Building package ${current_package}${NC}"
 
         # Disable some safety stuff here to provide nice output and continue building other packages if one build fails
         set +Ee
@@ -198,7 +268,7 @@ while true; do
 
         # If the build failed...
         if [[ "${build_outcome}" != 0 ]]; then
-          print_info "${RED}Build for ${directory##*/} failed at $(date)${NC}"
+          important "Build for ${current_package} failed at $(date)"
 
           [[ -f "${PWD}/krack-postbuild.sh" ]] && \
             print_info "Skipping postbuild script due to build failure"
@@ -213,22 +283,23 @@ while true; do
           source "${PWD}/krack-postbuild.sh"
         fi
 
-        for package in "${PWD}"/*.pkg.tar.zst; do
-          if [[ -f "${PKG_CACHE_DIR}/${package##*/}" ]]; then
-            print_info "${YELLOW}Package ${package##*/} with the same version is already in the krack pkgcache; the cat is mildly annoyed 😾${NC}"
+        for package_tarball in "${PWD}"/*.pkg.tar.zst; do
+          if [[ -f "${PKG_CACHE_DIR}/${current_package}" ]]; then
+            print_info "${YELLOW}Package ${current_package} with the same version is already in the krack pkgcache; the cat is mildly annoyed 😾${NC}"
             continue
           fi
 
           print_info "Copying package to local krack-build pkgcache"
-          cp "${package}" "${PKG_CACHE_DIR}"
+          cp "${package_tarball}" "${PKG_CACHE_DIR}"
 
-          print_info "Signing package and uploading to builds.krathalan.net"
-          gpg --default-key "${SIGNING_KEY}" --output "${package}.sig" --detach-sig "${package}"
+          print_info "Signing package and uploading to ${DROPBOX_PATH}"
+          gpg --default-key "${SIGNING_KEY}" --output "${package_tarball}.sig" --detach-sig "${package_tarball}"
           
+          # Sleep for 2 seconds; sometimes the rsync command starts before the sig file has appeared on slower devices
           sleep 2
-          rsync -a --progress "${package}" "${package}.sig" krack-receive@krathalan.net:~/package-dropbox
+          rsync -a --progress "${package_tarball}" "${package_tarball}.sig" "${DROPBOX_PATH}"
 
-          print_info "${GREEN}Package ${package##*/} built successfully; please give your cat a treat 😻${NC}"
+          print_info "${GREEN}Package ${current_package} built successfully; please give your cat a treat 😻${NC}"
         done
       fi
     done
@@ -236,9 +307,10 @@ while true; do
     print_info "It is $(date) and all packages have finished building"
   fi
   
-  print_info "The next daily package rebuild will occur 24 hours from now at $(date -d "$(date)+24 hours")"
-
-  # Custom printf here because we don't want a new line :)
+  state "sleeping"
+  NEXT_WAKE="$(date -d "$(date)+24 hours")"
+  print_info "The next daily package rebuild will occur 24 hours from now at ${NEXT_WAKE}"
+  # Custom printf here because we don't want a new line (for the spinner) :)
   printf "%sInfo:%s %sNapping until then...%s " "${WHITE}" "${NC}" "${PURPLE}" "${NC}"
 
   # https://unix.stackexchange.com/questions/225179/display-spinner-while-waiting-for-some-process-to-finish/225183#225183
@@ -247,9 +319,13 @@ while true; do
   i=1
   sp="/-\|"
   echo -n ' '
-  while [ -d "/proc/$sleep_pid" ]
-  do
+  while [[ -d "/proc/$sleep_pid" ]];  do
     printf "\b%s" ${sp:i++%${#sp}:1}
+
+    if check_awaken_request; then
+      break
+    fi
+
     sleep 0.75
   done
 
