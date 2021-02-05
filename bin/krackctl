@@ -166,7 +166,7 @@ status()
   printf "\n"
   printf "Latest important message: %s\n" "$(<"${STATUS_IMPORTANT_MESSAGE_FILE}")"
 
-  printf "Latest log entry: %s" "$(tail -n1 "${STATUS_CURRENT_LOG_FILE}")"
+  printf "Latest log entry: %s" "$(tail -n1 "$(<"${STATUS_CURRENT_LOG_FILE}")")"
 }
 
 # -----------------------------------------
