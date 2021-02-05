@@ -23,4 +23,4 @@ set -Eeuo pipefail
 readonly LOG_DIR="${HOME}/.local/share/krack/logs"
 LOG_FILE="${LOG_DIR}/$(date +"%m-%d-%Y_%s").log"
 touch "${LOG_FILE}"
-bash /usr/lib/krack/krack-build "$@" | tee -a "${LOG_FILE}"
+bash /usr/lib/krack/build "$@" | tee -a "${LOG_FILE}"
