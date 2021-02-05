@@ -25,6 +25,7 @@ readonly PKG_CACHE_DIR="${DATA_DIR}/pkgcache"
 readonly STATUS_DIR="${DATA_DIR}/.status"
 
 # Status files
+readonly STATUS_CURRENT_LOG_FILE="${STATUS_DIR}/current-log"
 readonly STATUS_STATE_FILE="${STATUS_DIR}/state"
 readonly STATUS_SUBSTATE_FILE="${STATUS_DIR}/substate"
 readonly STATUS_DATE_BUILD_START_FILE="${STATUS_DIR}/build-start"
