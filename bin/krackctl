@@ -73,10 +73,10 @@ create_chroot()
 request_build()
 {
   [[ ! -e "${MASTER_BUILD_DIR}/$2" ]] &&
-    exit_script_on_failure "Cannot find package $2"
+    exit_script_on_failure "Cannot find package $1"
 
   touch "${MASTER_BUILD_DIR}/$2/krack-request-build"
-  print_info "Build requested for package $2"
+  print_info "Build requested for package $1"
 }
 
 #######################################
