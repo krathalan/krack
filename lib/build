@@ -70,7 +70,7 @@ clean_pkgbuild_dirs()
   local toClean
 
   for directory in "${dirsToClean[@]}"; do
-    if [[ -d "${directory}" ]]; then
+    if [[ -d "${directory}" ]] || [[ -L "${directory}" ]]; then
       mapfile -t toClean <<< "$(find "${directory}" -type f \( -name "*.gz" -o -name "*.xz" -o -name "*.zst" -o -name "*.lz4" -o -name "*.log" -o -name "*.sig" \))"
 
       for file in "${toClean[@]}"; do
