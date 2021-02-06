@@ -31,6 +31,9 @@
 # See https://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_pipefail/
 set -Eeuo pipefail
 
+# Kill possible waiting sleep process if krack-build is terminated
+trap "kill 0" SIGINT
+
 # -----------------------------------------
 # ----------- Program variables -----------
 # -----------------------------------------
@@ -260,7 +263,7 @@ while true; do
         fi
 
         for package_tarball in "${PWD}"/*.pkg.tar.zst; do
-          if [[ -f "${PKG_CACHE_DIR}/${current_package}" ]]; then
+          if [[ -f "${PKG_CACHE_DIR}/${package_tarball}" ]]; then
             print_info "${YELLOW}Package ${current_package} with the same version is already in the krack pkgcache; the cat is mildly annoyed 😾${NC}"
             continue
           fi
