@@ -180,7 +180,7 @@ status()
   printf "\n"
   printf "%sLatest important message:%s %s\n" "${CYAN}" "${NC}" "$(<"${STATUS_IMPORTANT_MESSAGE_FILE}")"
 
-  printf "%sLatest log entries:%s\n %s" "${CYAN}" "${NC}" "$(tail -n5 "$(<"${STATUS_CURRENT_LOG_FILE}")")"
+  printf "%sLatest log entries:%s\n%s" "${CYAN}" "${NC}" "$(tail -n5 "$(<"${STATUS_CURRENT_LOG_FILE}")")"
 }
 
 # -----------------------------------------
