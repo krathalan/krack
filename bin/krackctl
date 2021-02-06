@@ -144,7 +144,7 @@ status()
     exit_script_on_failure "Status files not found. Have you ran krack-build yet?"
 
   printf "Krack version %s\n" "${VERSION}"
-  printf "State: %s" "$(<"${STATUS_STATE_FILE}")"
+  printf "%sState:%s %s" "${CYAN}" "${NC}" "$(<"${STATUS_STATE_FILE}")"
 
   if grep -q building "${STATUS_STATE_FILE}"; then
     # Calculate how long state has been "building"
@@ -153,7 +153,7 @@ status()
     date_diff="$(( time_now_unix - start_time_unix ))"
     printf ", running for %s" "$(date -d@${date_diff} -u +%H:%M:%S)"
 
-    printf "\nSubstate: %s" "$(<"${STATUS_SUBSTATE_FILE}")"
+    printf "\n%sSubstate:%s %s" "${CYAN}" "${NC}" "$(<"${STATUS_SUBSTATE_FILE}")"
     
     if grep -q making "${STATUS_SUBSTATE_FILE}"; then
       # Calculate how long state has been "making"
@@ -164,9 +164,9 @@ status()
   fi
 
   printf "\n"
-  printf "Latest important message: %s\n" "$(<"${STATUS_IMPORTANT_MESSAGE_FILE}")"
+  printf "%sLatest important message:%s %s\n" "${CYAN}" "${NC}" "$(<"${STATUS_IMPORTANT_MESSAGE_FILE}")"
 
-  printf "Latest log entry: %s" "$(tail -n1 "$(<"${STATUS_CURRENT_LOG_FILE}")")"
+  printf "%sLatest log entry:%s %s" "${CYAN}" "${NC}" "$(tail -n1 "$(<"${STATUS_CURRENT_LOG_FILE}")")"
 }
 
 # -----------------------------------------
