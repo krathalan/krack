@@ -67,7 +67,7 @@ check_awaken_request()
 clean_pkgbuild_dirs()
 {
   local toClean
-  mapfile -t toClean <<< "$(find "${MASTER_BUILD_DIR}" -type f \( -name "*.gz" -o -name "*.xz" -o -name "*.zst" -o -name "*.lz4" -o -name "*.log" -o -name "*.sig" \))"
+  mapfile -t toClean <<< "$(find -L "${MASTER_BUILD_DIR}" -type f \( -name "*.gz" -o -name "*.xz" -o -name "*.zst" -o -name "*.lz4" -o -name "*.log" -o -name "*.sig" \))"
 
   for file in "${toClean[@]}"; do
     rm -f "${file}"
