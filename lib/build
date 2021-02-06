@@ -274,6 +274,8 @@ while true; do
           fi
 
           print_info "Copying package to local krack-build pkgcache"
+          # Remove old packages first
+          rm -f "${PKG_CACHE_DIR}/${current_package}"*
           cp "${package_tarball}" "${PKG_CACHE_DIR}"
 
           print_info "Signing package and uploading to ${DROPBOX_PATH}"
