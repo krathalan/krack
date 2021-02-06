@@ -49,6 +49,7 @@ readonly SCRIPT_NAME="${0##*/}"
 awaken()
 {
   touch "${STATUS_DIR}/krack-request-awaken"
+  print_info "Wakey wakey eggs and bakey"
 }
 
 build_all()
@@ -67,6 +68,15 @@ create_chroot()
   sudo mkdir -p "${MAKECHROOTPKG_DIR}"
   sudo mkarchroot "${MAKECHROOTPKG_DIR}"/root base-devel ccache
   print_info "Done making ${MAKECHROOTPKG_DIR} makechrootpkg dir."
+}
+
+request_build()
+{
+  [[ ! -e "${MASTER_BUILD_DIR}/$2" ]] &&
+    exit_script_on_failure "Cannot find package $2"
+
+  touch "${MASTER_BUILD_DIR}/$2/krack-request-build"
+  print_info "Build requested for package $2"
 }
 
 #######################################
@@ -101,19 +111,23 @@ print_help()
   printf "%s" "\
 ${SCRIPT_NAME} - control script for a running krack-build
 
-$ krackctl create-chroot  Creates the Arch chroot for makechrootpkg to build
-                          packages in.
+$ krackctl create-chroot
+    Creates the Arch chroot for makechrootpkg to build packages in.
 
-$ krackctl status  Prints the current status of the running krack-build.
+$ krackctl status
+    Prints the current status of the running krack-build.
 
-$ krackctl awaken  Wakes krack-build up to start building packages immediately.
-                   Resets the next build time. If Krack is currently building
-                   packages, builds will start immediately again after Krack is
-                   finished with the current set.
+$ krackctl awaken
+    Wakes krack-build up to start building packages immediately. Resets the
+    next build time. If Krack is currently building packages, builds will
+    start immediately again after Krack is finished with the current set.
 
-$ krackctl build-all  Touches krack-request-build in every package directory,
-                      forcing all builds the next time krack-build wakes up.
-                      Also clears the krack-build package cache.
+$ krackctl request-build [package]
+    Touches krack-request-build in the specified package's requested directory.
+
+$ krackctl build-all  
+    Touches krack-request-build in every package directory, forcing all builds
+    the next time krack-build wakes up. Also clears the krack-build package cache.
 "
 
   exit 0
@@ -176,10 +190,17 @@ status()
 [[ "$1" != "create-chroot" ]] && [[ "$(whoami)" == "root" ]] &&
   exit_script_on_failure "This script should NOT be run as root (or sudo)!"
 
+[[ $# -lt 1 ]] && 
+  print_help
+
+[[ "$1" == "request-build" ]] && [[ $# -lt 2 ]] &&
+  exit_script_on_failure "Please specify a package to request a build of."
+
 case "$1" in
   awaken) awaken ;;
   build-all) build_all ;;
   create-chroot) create_chroot ;;
+  request-build) request_build "$2" ;;
   status) status ;;
   *) print_help ;;
 esac
