@@ -60,6 +60,17 @@ build_all()
   print_info "Package cache cleared"
 }
 
+clean_logs()
+{
+  mapfile -t newest_logs <<< "$(find "${LOG_DIR}" -type f -printf '%T@ %p\n' | sort -n | tail -"$1" | cut -f2- -d" ")"
+
+  for logfile in "${LOG_DIR}"/*; do
+    if [[ "${newest_logs[*]}" != *"${logfile##*/}"* ]]; then
+      rm -f "${logfile}"
+    fi
+  done
+}
+
 create_chroot()
 {
   # shellcheck disable=SC1091
@@ -121,6 +132,9 @@ $ krackctl awaken
     Wakes krack-build up to start building packages immediately. Resets the
     next build time. If Krack is currently building packages, builds will
     start immediately again after Krack is finished with the current set.
+
+$ krackctl clean-logs [X]
+    Deletes all logs that aren't the latest X number of logs.
 
 $ krackctl request-build [package]
     Touches krack-request-build in the specified package's requested directory.
@@ -194,12 +208,17 @@ status()
 [[ $# -lt 1 ]] && 
   print_help
 
-[[ "$1" == "request-build" ]] && [[ $# -lt 2 ]] &&
-  exit_script_on_failure "Please specify a package to request a build of."
+# These commands require another argument
+if [[ "$1" == "request-build" ]] || [[ "$1" == "clean-logs" ]]; then
+  [[ $# -lt 2 ]] && 
+    exit_script_on_failure "Please specify a package to request a build of."
+fi 
+  
 
 case "$1" in
   awaken) awaken ;;
   build-all) build_all ;;
+  clean-logs) clean_logs "$2" ;;
   create-chroot) create_chroot ;;
   request-build) request_build "$2" ;;
   status) status ;;
