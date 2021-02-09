@@ -195,7 +195,7 @@ status()
   printf "%sLatest important message:%s %s\n" "${CYAN}" "${NC}" "$(<"${STATUS_IMPORTANT_MESSAGE_FILE}")"
 
   printf "%sCurrent log file:%s %s\n" "${CYAN}" "${NC}" "$(find "${LOG_DIR}" -type f -printf '%T@ %p\n' | sort -n | tail -1 | cut -f2- -d" ")"
-  printf "%sLatest log entries:%s\n%s\n" "${CYAN}" "${NC}" "$(tail -n5 "$(<"${STATUS_CURRENT_LOG_FILE}")")"
+  printf "%sLatest log entries:%s\n%s\n" "${CYAN}" "${NC}" "$(tail -n10 "$(<"${STATUS_CURRENT_LOG_FILE}")")"
 }
 
 # -----------------------------------------
@@ -214,7 +214,6 @@ if [[ "$1" == "request-build" ]] && [[ $# -lt 2 ]]; then
 elif [[ "$1" == "clean-logs" ]] && [[ $# -lt 2 ]]; then
   exit_script_on_failure "Please specify the number of latest logs to keep (e.g. 10)."
 fi
-  
 
 case "$1" in
   awaken) awaken ;;

@@ -53,6 +53,8 @@ source /etc/krack/build.conf
 # --------------- Functions ---------------
 # -----------------------------------------
 
+# Checks to see if `krackctl awaken` has been invoked while
+# krack-build is sleeping
 check_awaken_request()
 {
   if [[ -f "${STATUS_DIR}/krack-request-awaken" ]]; then
