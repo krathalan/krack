@@ -263,7 +263,7 @@ while true; do
         fi
 
         for package_tarball in "${PWD}"/*.pkg.tar.zst; do
-          if [[ -f "${PKG_CACHE_DIR}/${package_tarball}" ]]; then
+          if [[ -f "${PKG_CACHE_DIR}/${package_tarball##*/}" ]]; then
             print_info "${YELLOW}Package ${current_package} with the same version is already in the krack pkgcache; the cat is mildly annoyed 😾${NC}"
             continue
           fi
