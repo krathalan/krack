@@ -41,7 +41,7 @@ set -Eeuo pipefail
 source /usr/lib/krack/common
 
 # shellcheck disable=SC1091
-source /usr/lib/krack/sync-status.conf
+source /etc/sync-status.conf
 
 # -----------------------------------------
 # --------------- Functions ---------------
