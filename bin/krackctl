@@ -209,10 +209,11 @@ status()
   print_help
 
 # These commands require another argument
-if [[ "$1" == "request-build" ]] || [[ "$1" == "clean-logs" ]]; then
-  [[ $# -lt 2 ]] && 
-    exit_script_on_failure "Please specify a package to request a build of."
-fi 
+if [[ "$1" == "request-build" ]] && [[ $# -lt 2 ]]; then
+  exit_script_on_failure "Please specify a package to request a build of."
+elif [[ "$1" == "clean-logs" ]] && [[ $# -lt 2 ]]; then
+  exit_script_on_failure "Please specify the number of latest logs to keep (e.g. 10)."
+fi
   
 
 case "$1" in
