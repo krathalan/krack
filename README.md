@@ -4,7 +4,7 @@
 1) automated building of Arch Linux packages and uploading to a target remote package dropbox, and
 2) receiving said packages in said dropbox at the remote location and adding them to a pacman repository.
 
-The specific use case is having a spare PC at home that you possibly use for a media server, but has enough power to compile some programs. You can set up krack to build your desired packages on this PC, and then upload them to a remote of your chosing, perhaps a VPS that you own that hosts a public pacman repository. Then all your Arch devices can pull in package updates without having to build it themselves. Krack can facilitate this process automatically, but takes some setup.
+The specific use case is having a spare PC at home that you possibly use for a media server, but has enough power to compile some programs. You can set up krack to build your desired packages on this PC, and then upload them to a remote of your choosing (perhaps a VPS that you own that hosts a public pacman repository). Then all your Arch devices can pull in package updates without having to build it themselves. Krack can facilitate this process automatically, but takes some setup.
 
 The setup section below explains what the ideal setup for the software will be, not what it currently is. This is a major WIP.
 

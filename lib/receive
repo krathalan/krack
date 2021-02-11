@@ -79,6 +79,9 @@ add_packages()
   for package in "${DROPBOX_PATH}"/*.pkg.tar.zst; do
     if [[ -f "${PWD}/${package##*/}" ]]; then
       print_info "Package with that version already exists. Removing package and signature from ${DROPBOX_PATH}..."
+
+      # It's okay to not specify $DROPBOX_PATH here before the file names because
+      # $package will contain a full non-relative path
       rm -f "${package}" "${package}.sig"
       continue
     fi
