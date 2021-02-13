@@ -204,11 +204,11 @@ status()
 # ---------------- Script -----------------
 # -----------------------------------------
 
-[[ "$1" != "create-chroot" ]] && [[ "$(whoami)" == "root" ]] &&
-  exit_script_on_failure "This script should NOT be run as root (or sudo)!"
-
 [[ $# -lt 1 ]] && 
   print_help
+
+[[ "$1" != "create-chroot" ]] && [[ "$(whoami)" == "root" ]] &&
+  exit_script_on_failure "This script should NOT be run as root (or sudo)!"
 
 # These commands require another argument
 if [[ "$1" == "request-build" ]] && [[ $# -lt 2 ]]; then
