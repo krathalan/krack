@@ -235,9 +235,9 @@ status()
     local -r log_lines_to_watch="10"
   fi
 
-  local -r TERMINAL_WIDTH="$(tput cols)"
+  local -r terminal_width="$(tput cols)"
 
-  printf "%sLatest log entries:%s\n%s\n" "${CYAN}" "${NC}" "$(tail -n${log_lines_to_watch} "$(<"${STATUS_CURRENT_LOG_FILE}")" | cut -c 1-"${TERMINAL_WIDTH}")"
+  printf "%sLatest log entries:%s\n%s\n" "${CYAN}" "${NC}" "$(tail -n${log_lines_to_watch} "$(<"${STATUS_CURRENT_LOG_FILE}")" | cut -c 1-"${terminal_width}")"
 }
 
 watch_status()
