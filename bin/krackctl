@@ -225,7 +225,30 @@ status()
   printf "%sLatest important message:%s %s\n" "${CYAN}" "${NC}" "$(<"${STATUS_IMPORTANT_MESSAGE_FILE}")"
 
   printf "%sCurrent log file:%s %s\n" "${CYAN}" "${NC}" "$(find "${LOG_DIR}" -type f -printf '%T@ %p\n' | sort -n | tail -1 | cut -f2- -d" ")"
-  printf "%sLatest log entries:%s\n%s\n" "${CYAN}" "${NC}" "$(tail -n10 "$(<"${STATUS_CURRENT_LOG_FILE}")")"
+
+  if [[ $# -gt 1 ]]; then
+    shift
+    local -r log_lines_to_watch="$1"
+  else
+    local -r log_lines_to_watch="10"
+  fi
+
+  printf "%sLatest log entries:%s\n%s\n" "${CYAN}" "${NC}" "$(tail -n${log_lines_to_watch} "$(<"${STATUS_CURRENT_LOG_FILE}")")"
+}
+
+watch_status()
+{
+  local -r tmpdir="$(mktemp -d -t "${SCRIPT_NAME}_XXXXXXXX")"
+  local -r tmpfile="${tmpdir}/watch-status"
+
+  trap 'rm -f ${tmpfile}' SIGINT EXIT
+
+  while true ; do
+    status "$@" > "${tmpfile}"
+    clear
+    cat "${tmpfile}"
+    sleep 1
+  done
 }
 
 # -----------------------------------------
@@ -253,6 +276,7 @@ case "$1" in
   request-build) request_build "$2" ;;
   pending-builds) pending_builds ;;
   cancel-all-requests) cancel_all_requests ;;
-  status) status ;;
+  status) status "$@" ;;
+  watch-status) watch_status "$@" ;;
   *) print_help ;;
 esac
