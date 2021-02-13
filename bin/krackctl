@@ -92,6 +92,34 @@ request_build()
   print_info "Build requested for package $1"
 }
 
+pending_builds()
+{
+  local list_of_pending_builds
+  local to_print
+  mapfile -t list_of_pending_builds <<< "$(find "${MASTER_BUILD_DIR}" -name "krack-request-build")"
+
+  print_info "List of pending package build requests:"
+
+  for pending_build in "${list_of_pending_builds[@]}"; do
+    # Use variable substitution to isolate name of pkg directory
+    to_print="${pending_build%/*}"
+    printf "%s\n" "${to_print##*/}"
+  done
+}
+
+cancel_all_requests()
+{
+  local list_of_pending_builds
+  local to_print
+  mapfile -t list_of_pending_builds <<< "$(find "${MASTER_BUILD_DIR}" -name "krack-request-build")"
+
+  for pending_build in "${list_of_pending_builds[@]}"; do
+    rm -f "${pending_build}"
+    to_print="${pending_build%/*}"
+    print_info "Deleted build request for ${to_print##*/}"
+  done
+}
+
 #######################################
 # Prints passed error message before premature exit.
 # Prints everything to >&2 (STDERR).
@@ -223,6 +251,8 @@ case "$1" in
   clean-logs) clean_logs "$2" ;;
   create-chroot) create_chroot ;;
   request-build) request_build "$2" ;;
+  pending-builds) pending_builds ;;
+  cancel-all-requests) cancel_all_requests ;;
   status) status ;;
   *) print_help ;;
 esac
