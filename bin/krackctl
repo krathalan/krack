@@ -226,6 +226,8 @@ status()
 
   printf "%sCurrent log file:%s %s\n" "${CYAN}" "${NC}" "$(find "${LOG_DIR}" -type f -printf '%T@ %p\n' | sort -n | tail -1 | cut -f2- -d" ")"
 
+  # If user specified how many lines of log to show, use that
+  # otherwise default to 10
   if [[ $# -gt 1 ]]; then
     shift
     local -r log_lines_to_watch="$1"
@@ -233,7 +235,9 @@ status()
     local -r log_lines_to_watch="10"
   fi
 
-  printf "%sLatest log entries:%s\n%s\n" "${CYAN}" "${NC}" "$(tail -n${log_lines_to_watch} "$(<"${STATUS_CURRENT_LOG_FILE}")")"
+  local -r TERMINAL_WIDTH="$(tput cols)"
+
+  printf "%sLatest log entries:%s\n%s\n" "${CYAN}" "${NC}" "$(tail -n${log_lines_to_watch} "$(<"${STATUS_CURRENT_LOG_FILE}")" | cut -c 1-"${TERMINAL_WIDTH}")"
 }
 
 watch_status()
