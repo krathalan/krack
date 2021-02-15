@@ -245,7 +245,7 @@ watch_status()
   local -r tmpdir="$(mktemp -d -t "${SCRIPT_NAME}_XXXXXXXX")"
   local -r tmpfile="${tmpdir}/watch-status"
 
-  trap 'rm -f ${tmpfile}' SIGINT EXIT
+  trap 'rm -f ${tmpfile}' INT SIGINT EXIT
 
   while true ; do
     status "$@" > "${tmpfile}"
