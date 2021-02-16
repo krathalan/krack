@@ -118,6 +118,16 @@ You can run:
 
 with "X" being the number of latest logs you want to keep, e.g. 10.
 
+### Special ssh instructions
+If you have special ssh instructions like a specific port you use, you should specify that in the `~/.ssh/config` file on the builder user. For example:
+
+```
+Host receiver-pc
+    HostName 192.168.0.78
+    User receiver-user
+    Port 9234
+```
+
 ### krack-build options
 ```
 --start-asleep   Starts krack-build as if it had just finished building
