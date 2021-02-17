@@ -247,8 +247,12 @@ watch_status()
 
   trap 'rm -rf ${tmpdir}' INT SIGINT EXIT
 
+  # Get number of available lines for log display
+  local -r terminal_height=$(tput lines)
+  local -r log_display=$(( terminal_height - 7 ))
+
   while true ; do
-    status "$@" > "${tmpfile}"
+    status "status" "${log_display}" > "${tmpfile}"
     clear
     cat "${tmpfile}"
     sleep 1
@@ -281,6 +285,6 @@ case "$1" in
   pending-builds) pending_builds ;;
   cancel-all-requests) cancel_all_requests ;;
   status) status "$@" ;;
-  watch-status) watch_status "$@" ;;
+  watch-status) watch_status;;
   *) print_help ;;
 esac
