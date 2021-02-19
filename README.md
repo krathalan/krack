@@ -6,6 +6,9 @@
 
 The specific use case is having a spare PC at home that you possibly use for a media server, but has enough power to compile some programs. You can set up krack to build your desired packages on this PC, and then upload them to a remote of your choosing (perhaps a VPS that you own that hosts a public pacman repository). Then all your Arch devices can pull in package updates without having to build it themselves. Krack can facilitate this process automatically, but takes some setup.
 
+### Outstanding issues
+1. No auto-import of GPG keys to verify source files.
+
 ## Setup
 ### System users
 Set up an unprivileged building user on the builder PC, and an unprivileged receiving user on the remote PC. Ensure that you can SSH into both accounts, preferably via keys. Ensure that the builder user can SSH into the receiving user.

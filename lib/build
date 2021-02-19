@@ -116,7 +116,8 @@ print_info()
 
 important()
 {
-  printf "%s" "$1" >> "${STATUS_IMPORTANT_MESSAGE_FILE}"
+  sed -i '/nothing yet :)/d' "${STATUS_IMPORTANT_MESSAGE_FILE}"
+  printf "%s\n" "$1" >> "${STATUS_IMPORTANT_MESSAGE_FILE}"
   printf "%s!!!!: %s%s\n" "${RED}" "$1" "${NC}"
 }
 
