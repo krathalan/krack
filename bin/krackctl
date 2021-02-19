@@ -253,7 +253,7 @@ watch_status()
   local -r terminal_height=$(tput lines)
   local -r base_lines_used="7" # Lines that are always printed, e.g. "Status: "
   local num_important_messages
-  num_important_messages="$(wc -l "${STATUS_IMPORTANT_MESSAGE_FILE}")"
+  num_important_messages="$(wc -l "${STATUS_IMPORTANT_MESSAGE_FILE}" | cut -d' ' -f1)"
 
   # Max important messages displayed is 8
   if [[ "${num_important_messages}" -gt 8 ]]; then
