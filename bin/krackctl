@@ -222,7 +222,7 @@ status()
   fi
 
   printf "\n"
-  printf "%sLatest important message:%s %s\n" "${CYAN}" "${NC}" "$(<"${STATUS_IMPORTANT_MESSAGE_FILE}")"
+  printf "%sLatest important messages:%s\n%s\n" "${CYAN}" "${NC}" "$(tail -n8 "${STATUS_IMPORTANT_MESSAGE_FILE}")"
 
   printf "%sCurrent log file:%s %s\n" "${CYAN}" "${NC}" "$(find "${LOG_DIR}" -type f -printf '%T@ %p\n' | sort -n | tail -1 | cut -f2- -d" ")"
 
@@ -247,9 +247,20 @@ watch_status()
 
   trap 'rm -rf ${tmpdir}' INT SIGINT EXIT
 
-  # Get number of available lines for log display
+  # To fill up the terminal completely and without cutting anything off the top,
+  # we need to figure out (1) how many lines are available, and (2) how many lines
+  # are being printed by the "latest important messages" section
   local -r terminal_height=$(tput lines)
-  local -r log_display=$(( terminal_height - 7 ))
+  local -r base_lines_used="7" # Lines that are always printed, e.g. "Status: "
+  local num_important_messages
+  num_important_messages="$(wc -l "${STATUS_IMPORTANT_MESSAGE_FILE}")"
+
+  # Max important messages displayed is 8
+  if [[ "${num_important_messages}" -gt 8 ]]; then
+    num_important_messages=8
+  fi
+
+  local -r log_display=$(( terminal_height - base_lines_used - num_important_messages ))
 
   while true ; do
     status "status" "${log_display}" > "${tmpfile}"

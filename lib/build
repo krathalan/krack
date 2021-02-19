@@ -116,7 +116,7 @@ print_info()
 
 important()
 {
-  printf "%s" "$1" > "${STATUS_IMPORTANT_MESSAGE_FILE}"
+  printf "%s" "$1" >> "${STATUS_IMPORTANT_MESSAGE_FILE}"
   printf "%s!!!!: %s%s\n" "${RED}" "$1" "${NC}"
 }
 
@@ -126,7 +126,7 @@ state()
     starting) state_helper "starting up..." ;;
     death) state_helper "pronounced dead at $(date). Kitty is sad 😿" ;;
     sleeping) state_helper "sleeping until ${NEXT_WAKE}" ;;
-    building) state_helper "building (started at $(date +%r))" 
+    building) state_helper "building (started at $(date +%r))"
               date +%s > "${STATUS_DATE_BUILD_START_FILE}"
               ;;
     *) state_helper "unknown. Contact developer at srht@krathalan.net" ;;
@@ -141,7 +141,7 @@ state_helper()
 substate()
 {
   case "$1" in
-    making) substate_helper "making ${current_package} package (started at $(date +%r))" 
+    making) substate_helper "making ${current_package} package (started at $(date +%r))"
             date +%s > "${STATUS_DATE_MAKE_START_FILE}"
             ;;
     preparing) substate_helper "preparing for build" ;;
@@ -183,9 +183,13 @@ fi
 
 SKIP_COMPLETE="false"
 
+print_honey
+
 while true; do
   state "building"
-  print_info "${CYAN}Good morning, it is $(date) and it's time to build packages again${NC}"
+  print_info "${CYAN}Good morning honey, it is $(date) and it's time to build packages again${NC}"
+  print_info "Flushing important messages log"
+  printf "nothing yet :)" > "${STATUS_IMPORTANT_MESSAGE_FILE}"
 
   if [[ "${SKIP_COMPLETE}" == "false" ]] && [[ "${START_ASLEEP}" == "true" ]]; then
     print_info "Oh boy, extra naps! Starting asleep"
@@ -209,7 +213,22 @@ while true; do
 
         # Check out a fresh pkgbuild; pull any diffs
         git checkout PKGBUILD &> /dev/null
+
+        # This command (git pull) can fail for a multitude of reasons,
+        # and we should prepare to handle it gracefully
+        set +Ee
+
         git_output="$(git pull)"
+        git_pull_return_code="$?"
+
+        if [[ "${git_pull_return_code}" != 0 ]]; then
+          important "Git pull in package directory failed before building ${current_package}. Cancelling build"
+          # Don't forget to re-set -Ee if we're going to `continue` out of this build cycle
+          set -Ee
+          continue
+        fi
+
+        set -Ee
 
         if [[ -f "${PWD}/krack-postpull.sh" ]]; then
           print_info "Executing krack-postpull.sh"
@@ -240,7 +259,7 @@ while true; do
         # -d: Bind directory into build chroot as read-write
         # -r: The chroot dir to use
         # Arguments passed to makechrootpkg after the
-        # end-of-options marker (--) will be passed to makepkg. 
+        # end-of-options marker (--) will be passed to makepkg.
         makechrootpkg -c -u -d "${CCACHE_DIR}"/:/ccache -r "${MAKECHROOTPKG_DIR}" -- CCACHE_DIR=/ccache
         build_outcome=$?
 
@@ -277,7 +296,7 @@ while true; do
 
           print_info "Signing package and uploading to ${DROPBOX_PATH}"
           gpg --default-key "${SIGNING_KEY}" --output "${package_tarball}.sig" --detach-sig "${package_tarball}"
-          
+
           # Sleep for 2 seconds; sometimes the rsync command starts before the sig file has appeared on slower devices
           sleep 2
           rsync -a --progress "${package_tarball}" "${package_tarball}.sig" "${DROPBOX_PATH}"
@@ -289,7 +308,7 @@ while true; do
 
     print_info "It is $(date) and all packages have finished building"
   fi
-  
+
   NEXT_WAKE="$(date -d "$(date)+24 hours")"
   state "sleeping"
   print_info "The next daily package rebuild will occur 24 hours from now at ${NEXT_WAKE}"
