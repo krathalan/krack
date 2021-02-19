@@ -201,7 +201,6 @@ status()
   [[ ! -d "${STATUS_DIR}" ]] &&
     exit_script_on_failure "Status files not found. Have you ran krack-build yet?"
 
-  printf "Krack version %s\n" "${VERSION}"
   printf "%sState:%s %s" "${CYAN}" "${NC}" "$(<"${STATUS_STATE_FILE}")"
 
   if grep -q building "${STATUS_STATE_FILE}"; then
@@ -222,7 +221,7 @@ status()
   fi
 
   printf "\n"
-  printf "%sLatest important messages:%s\n%s\n" "${CYAN}" "${NC}" "$(tail -n8 "${STATUS_IMPORTANT_MESSAGE_FILE}")"
+  printf "%sLatest important messages, from most to least recent:%s\n%s\n" "${CYAN}" "${NC}" "$(tail -n8 "${STATUS_IMPORTANT_MESSAGE_FILE}" | tac)"
 
   printf "%sCurrent log file:%s %s\n" "${CYAN}" "${NC}" "$(find "${LOG_DIR}" -type f -printf '%T@ %p\n' | sort -n | tail -1 | cut -f2- -d" ")"
 
