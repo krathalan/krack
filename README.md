@@ -164,6 +164,6 @@ $ krackctl build-all
 This command must be run as a user with sudo privileges.
 
 ```
-$ sudo krackctl create-chroot
+$ krackctl create-chroot
     Creates the Arch chroot for makechrootpkg to build packages in.
 ```
