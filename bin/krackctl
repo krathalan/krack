@@ -261,7 +261,7 @@ watch_status()
 
   local -r log_display=$(( terminal_height - base_lines_used - num_important_messages ))
 
-  while true ; do
+  while true; do
     status "status" "${log_display}" > "${tmpfile}"
     clear
     cat "${tmpfile}"
