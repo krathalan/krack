@@ -78,6 +78,9 @@ create_chroot()
   # shellcheck disable=SC1091
   source /etc/krack/build.conf
 
+  [[ -e "${MAKECHROOTPKG_DIR}" ]] &&
+    exit_script_on_failure "Something already exists at ${MAKECHROOTPKG_DIR}."
+
   sudo mkdir -p "${MAKECHROOTPKG_DIR}"
   sudo mkarchroot "${MAKECHROOTPKG_DIR}"/root base-devel ccache
   print_info "Done making ${MAKECHROOTPKG_DIR} makechrootpkg dir."
@@ -137,44 +140,9 @@ exit_script_on_failure()
   exit 1
 }
 
-#######################################
-# Prints information about how to use this script.
-# Copyright (C) 2016-2019 Dylan Araps
-# Globals:
-#   SCRIPT_NAME
-# Arguments:
-#   none
-# Returns:
-#   none
-#######################################
 print_help()
 {
-  printf "%s" "\
-${SCRIPT_NAME} - control script for a running krack-build
-
-$ krackctl create-chroot
-    Creates the Arch chroot for makechrootpkg to build packages in.
-
-$ krackctl status
-    Prints the current status of the running krack-build.
-
-$ krackctl awaken
-    Wakes krack-build up to start building packages immediately. Resets the
-    next build time. If Krack is currently building packages, builds will
-    start immediately again after Krack is finished with the current set.
-
-$ krackctl clean-logs [X]
-    Deletes all logs that aren't the latest X number of logs.
-
-$ krackctl request-build [package]
-    Touches krack-request-build in the specified package's requested directory.
-
-$ krackctl build-all  
-    Touches krack-request-build in every package directory, forcing all builds
-    the next time krack-build wakes up. Also clears the krack-build package cache.
-"
-
-  exit 0
+  man krackctl
 }
 
 #######################################
