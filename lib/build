@@ -317,7 +317,7 @@ while true; do
   printf "%sInfo:%s %sNapping until then...%s " "${WHITE}" "${NC}" "${PURPLE}" "${NC}"
 
   # https://unix.stackexchange.com/questions/225179/display-spinner-while-waiting-for-some-process-to-finish/225183#225183
-  sleep 86400 &
+  sleep "${SLEEP_HOURS}"h &
   sleep_pid=$!
   i=1
   sp="/-\|"
