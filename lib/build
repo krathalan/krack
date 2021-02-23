@@ -184,8 +184,6 @@ fi
 
 SKIP_COMPLETE="false"
 
-print_honey
-
 while true; do
   state "building"
   print_info "${CYAN}Good morning honey, it is $(date) and it's time to build packages again${NC}"
@@ -310,9 +308,9 @@ while true; do
     print_info "It is $(date) and all packages have finished building"
   fi
 
-  NEXT_WAKE="$(date -d "$(date)+24 hours")"
+  NEXT_WAKE="$(date -d "$(date)+${SLEEP_HOURS} hours")"
   state "sleeping"
-  print_info "The next daily package rebuild will occur 24 hours from now at ${NEXT_WAKE}"
+  print_info "The next daily package rebuild will occur ${SLEEP_HOURS} hours from now at ${NEXT_WAKE}"
   # Custom printf here because we don't want a new line (for the spinner) :)
   printf "%sInfo:%s %sNapping until then...%s " "${WHITE}" "${NC}" "${PURPLE}" "${NC}"
 
