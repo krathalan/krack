@@ -15,7 +15,7 @@ All of the documentation comes in the form of man pages. `man krack` is the main
 1. No auto-import of GPG keys to verify source files.
 
 ## Installation
-Install `krack-git` from the AUR: https://aur.archlinux.org/packages/krack-git/
+Install `krack-git` from the AUR: https://aur.archlinux.org/packages/krack/
 
 ## Setup
 See `man krack`.
