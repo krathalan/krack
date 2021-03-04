@@ -30,7 +30,7 @@ Krack-build will only initiate an individual build under three circumstances:
 . The package name ends in "-git"
 . The file "krack-request-build" exists in the package's directory
 
-Krack-build will always upload a newly built package, unless a package with the same name exists in the local krack-build pkgcache.
+Krack-build will always upload a newly built package, unless a package with the same filename (and therefore version) exists in the local krack-build pkgcache.
 
 After the build cycle is finished, the *sleep cycle* begins, lasting for the defined number of SLEEP_HOURS in /etc/krack/build.conf.
 
