@@ -110,6 +110,10 @@ exit_script_on_failure()
 print_info()
 {
   printf "%sInfo:%s %s\n" "${WHITE}" "${NC}" "$1"
+  
+  if [[ "${LOG_SETTING}" == *"systemd"* ]]; then
+    printf "%s" "$1" | systemd-cat --identifier="krack-build" --priority="info"
+  fi
 }
 
 # Stuff for $(krackctl status)
@@ -118,7 +122,12 @@ important()
 {
   sed -i '/nothing yet :)/d' "${STATUS_IMPORTANT_MESSAGE_FILE}"
   printf "%s\n" "$1" >> "${STATUS_IMPORTANT_MESSAGE_FILE}"
-  printf "%s!!!!: %s%s\n" "${RED}" "$1" "${NC}"
+  printf "%sError: %s%s\n" "${RED}" "$1" "${NC}"
+  
+  
+  if [[ "${LOG_SETTING}" == *"systemd"* ]]; then
+    printf "Error: %s" "$1" | systemd-cat --identifier="krack-build" --priority="err"
+  fi
 }
 
 state()
@@ -186,7 +195,7 @@ SKIP_COMPLETE="false"
 
 while true; do
   state "building"
-  print_info "${CYAN}Good morning honey, it is $(date) and it's time to build packages again${NC}"
+  print_info "Good morning honey, it is $(date) and it's time to build packages again"
   print_info "Flushing important messages log"
   printf "nothing yet :)" > "${STATUS_IMPORTANT_MESSAGE_FILE}"
 
@@ -239,16 +248,16 @@ while true; do
           rm -f "${PWD}/krack-request-build"
           print_info "Build was requested manually; proceeding with build"
         elif [[ "${git_output}" == *"Already up to date."* ]] && [[ "${directory}" != *"git"* ]]; then
-          print_info "No need to build ${current_package}, it is already ${GREEN}up-to-date${NC} and is not a -git package; skipping"
+          print_info "No need to build ${current_package}, it is already up-to-date and is not a -git package; skipping"
           continue
         fi
 
         if [[ "${directory}" == *"git"* ]]; then
-          print_info "${current_package} is a -git package; ${BLUE}forcing update${NC}"
+          print_info "${current_package} is a -git package; forcing update"
         fi
 
         substate "making"
-        print_info "${BLUE}Building package ${current_package}${NC}"
+        print_info "Building package ${current_package}"
 
         # Disable some safety stuff here to provide nice output and continue building other packages if one build fails
         set +Ee
@@ -284,7 +293,7 @@ while true; do
 
         for package_tarball in "${PWD}"/*.pkg.tar.zst; do
           if [[ -f "${PKG_CACHE_DIR}/${package_tarball##*/}" ]]; then
-            print_info "${YELLOW}Package ${current_package} with the same version is already in the krack pkgcache; the cat is mildly annoyed 😾${NC}"
+            print_info "Package ${current_package} with the same version is already in the krack pkgcache; the cat is mildly annoyed 😾"
             continue
           fi
 
@@ -300,7 +309,7 @@ while true; do
           sleep 2
           rsync -a --progress "${package_tarball}" "${package_tarball}.sig" "${DROPBOX_PATH}"
 
-          print_info "${GREEN}Package ${current_package} built successfully; please give your cat a treat 😻${NC}"
+          print_info "Package ${current_package} built and uploaded successfully; please give your cat a treat 😻"
         done
       fi
     done

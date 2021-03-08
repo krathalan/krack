@@ -103,10 +103,11 @@ Krack-build supports custom build hooks. The build process for any package happe
 . git pull
 . source krack-postpull.sh, if it exists
 . makechrootpkg
+. source krack-postbuild.sh, if it exists
 
-You can put any valid Bash in both krack-prepull.sh and krack-postpull.sh scripts, and they will be sourced by krack-build at the indicated step in the build process. These scripts can be used for many things like patching PKGBUILDs or other source files. *But be careful!* Since krack-build is *sourcing* your scripts, if you cd anywhere, krack-build will too.
+You can put any valid Bash in all krack*.sh scripts, and they will be sourced by krack-build at the indicated step in the build process. These scripts can be used for many things like patching PKGBUILDs or other source files. *But be careful!* Since krack-build is *sourcing* your scripts, if you cd anywhere, krack-build will too.
 
-These scripts (krack-{prepull,postpull}.sh) should be placed in the package directory that they are affecting.
+These scripts should be placed in the package directory that they are affecting.
 
 ## CCACHE COMPLIANCE
 
