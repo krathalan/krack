@@ -126,7 +126,7 @@ important()
   
   
   if [[ "${LOG_SETTING}" == *"systemd"* ]]; then
-    printf "Error: %s" "$1" | systemd-cat --identifier="krack-build" --priority="err"
+    printf "ERROR: %s" "${1%%at*}" | systemd-cat --identifier="krack-build" --priority="err"
   fi
 }
 

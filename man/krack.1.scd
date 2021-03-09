@@ -10,7 +10,7 @@ krack - A set of programs for building, uploading, and receiving packages
 
 Krack-build is designed to run on one computer, which will build packages and send them over rsync to another computer: the receiving computer, where krack-receive runs as a daemon that watches a directory for new packages to add to a pacman repo.
 
-The specific use case krack is built for is having a PC at home which has some excess computing power it's not using that can build packages, and having a pacman repo hosted on a receiving low-cost, low-power remote VPS.
+The specific use case krack is built for, is having a PC at home which can build packages, and having a pacman repo hosted on a receiving low-cost, low-power remote VPS.
 
 ## KRACK-BUILD
 
@@ -52,7 +52,11 @@ Set up a pacman repository at the desired directory on your receiver PC. You can
 
 After that, you will need to create a user specifically for receiving packages. Ensure that you can ssh into this user, preferably via keys. Create a directory in this user's home directory to act as a dropbox where packages will be rsync'ed to from the building PC.
 
-Edit /etc/krack/receive.conf with your specific paths. The $REPO_ROOT should be where the pacman repo is that you set up earlier. $REPO_DB_FILE is the name of the database file for the repo (e.g. reponame.db.tar). Finally $DROPBOX_PATH is where you will be sending packages; this should be the same directory you created earlier in the user's home directory.
+Edit /etc/krack/receive.conf with your specific paths. 
+
+- $REPO_ROOT should be where the pacman repo is that you set up earlier.
+- $REPO_DB_FILE is the name of the database file for the repo (e.g. reponame.db.tar).
+- $DROPBOX_PATH is where you will be sending packages; this should be the same directory you created earlier in the user's home directory.
 
 Finally, enable and start krack-receive.service.
 
@@ -66,7 +70,12 @@ builder-user ALL=(ALL) NOPASSWD:/usr/bin/makechrootpkg
 
 Change "builder-user" to whatever the name of your builder user is on the builder PC.
 
-Finally, you will need to edit /etc/krack/build.conf for your specific setup. $MAKECHROOTPKG_DIR is where the Arch chroot will live that will be used to build packages. You can specify any directory you like here. /var/lib/makechrootpkg is a safe default. $SIGNING_KEY should be the GPG key ID of the signing key you wish to use, in the builder user's keyring that you created earlier. $DROPBOX_PATH is the path where packages will be rsynced to the receiving user on the remote PC: e.g. receiver-user@173.195.146.142:/home/receiver-user/drop.
+Finally, you will need to edit /etc/krack/build.conf for your specific setup. 
+
+- $MAKECHROOTPKG_DIR is where the Arch chroot will live that will be used to build packages. You can specify any directory you like here. /var/lib/makechrootpkg is a safe default. 
+- $SIGNING_KEY should be the GPG key ID of the signing key you wish to use, in the builder user's keyring that you created earlier. 
+- $DROPBOX_PATH is the path where packages will be rsynced to the receiving user on the remote PC: e.g. receiver-user@173.195.146.142:/home/receiver-user/drop.
+- $LOG_SETTING controls where krack-build will send its output. Note that you cannot disable classic logging, but you can disable systemd journal logging.
 
 ## LAST STEP
 
@@ -92,6 +101,20 @@ Detach from the tmux session and navigate to ~/.local/share/krack/packages. Here
 You can now run *krackctl awaken* to wake krack-build up in the detached tmux session to start building packages. See *man krackctl* for more commands.
 
 # OTHER
+
+## READING LOGS
+
+Krack has several useful ways for you to view and parse logs. By default, krack-build will log to the systemd journal as well as using its own log system. You can disable systemd journal logging, but not the built-in log system.
+
+You can run *krackctl status* on the builder PC to get a good overview of your current running krack-build instance. Using the built-in log system, it will display the current state (e.g. sleeping, building, ...), the current substate if there is one (e.g. building gimp-git), the latest 10 errors from most to least recent, the filename of the current log file, and the last 10 lines of raw output from the running krack-build instance. *krackctl watch-status* does the same thing, but refreshes every second and fills the entire terminal height.
+
+You can also view the raw log files in ~/.local/share/krack/logs. They contain the entire output of the krack-build instance they were generated from, including all makechrootpkg output.
+
+You can also use journalctl to view and parse messages krack-build has sent to the system journal. Run *journalctl -t krack-build* to view all the log entries. Krack-build will only output info and error messages to the journal; no other output (such as from makechrootpkg) will be output here. You can run *journalctl -t krack-build -p err* to view all entries classified as an error; this will list all of the failed package builds. You can combine any of these options and more with the *-f* option for journalctl to tail the log. See *man journalctl* for more options.
+
+If you are not seeing krack-build logs in the systemd journal, ensure that systemd logging is enabled in /etc/krack/build.conf, and ensure that you have sufficient permissions for viewing those log entries.
+
+Krack-receive runs as a systemd service, so you can use any valid journalctl commands with *-u krack-receive* on your receiver PC to view any output.
 
 ## BUILD HOOKS
 
