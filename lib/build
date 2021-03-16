@@ -209,7 +209,7 @@ while true; do
     # Update build chroot once before each build cycle, not each time
     # we build with makechrootpkg (to reduce strain on mirrors)
     print_info "Upgrading build chroot before building"
-    arch-nspawn "${MAKECHROOTPKG_DIR}" pacman -Syu
+    arch-nspawn "${MAKECHROOTPKG_DIR}/root" pacman -Syu
 
     for directory in "${MASTER_BUILD_DIR:-}"/*; do
       if [[ -d "${directory}" ]]; then
