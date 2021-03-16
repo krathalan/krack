@@ -32,7 +32,8 @@
 set -Eeuo pipefail
 
 # Kill possible waiting sleep process if krack-build is terminated
-trap "state death && kill 0" SIGINT
+trap "state death && kill 0" SIGINT ERR
+trap "clean_up" EXIT SIGINT ERR
 
 # -----------------------------------------
 # ----------- Program variables -----------
@@ -48,6 +49,10 @@ source /usr/lib/krack/common
 # Source user conf
 # shellcheck disable=SC1091
 source /etc/krack/build.conf
+
+# Used for logging to track failed builds
+readonly TMP_DIR="$(mktemp -d -t "${SCRIPT_NAME}_XXXXXXXX")"
+readonly TMP_LOG="${TMP_DIR}/tmp.log"
 
 # -----------------------------------------
 # --------------- Functions ---------------
@@ -77,6 +82,11 @@ clean_pkgbuild_dirs()
   for file in "${toClean[@]}"; do
     rm -f "${file}"
   done
+}
+
+clean_up()
+{
+  rm -rf "${TMP_DIR}"
 }
 
 #######################################
@@ -126,7 +136,7 @@ important()
   
   
   if [[ "${LOG_SETTING}" == *"systemd"* ]]; then
-    printf "ERROR: %s" "${1%%at*}" | systemd-cat --identifier="krack-build" --priority="err"
+    printf "ERROR: %s" "$1" | systemd-cat --identifier="krack-build" --priority="err"
   fi
 }
 
@@ -172,9 +182,10 @@ substate_helper()
   exit_script_on_failure "This script should NOT be run as root (or sudo)!"
 
 # Ensure all important directories exist
+# Making FAILED_BUILDS_LOG_DIR makes LOG_DIR
 mkdir -p "${MASTER_BUILD_DIR}" \
          "${CCACHE_DIR}" \
-         "${LOG_DIR}" \
+         "${FAILED_BUILDS_LOG_DIR}" \
          "${PKG_CACHE_DIR}" \
          "${STATUS_DIR}"
 
@@ -264,6 +275,10 @@ while true; do
         substate "making"
         print_info "Building package ${current_package}"
 
+        # Empty temporary log file for makechrootpkg output
+        # (if makechrootpkg command fails we will make this log permanent and assign a unique build fail ID to it)
+        printf "" > "${TMP_LOG}"
+
         # Disable some safety stuff here to provide nice output and continue building other packages if one build fails
         set +Ee
 
@@ -272,15 +287,19 @@ while true; do
         # -r: The chroot dir to use
         # Arguments passed to makechrootpkg after the
         # end-of-options marker (--) will be passed to makepkg.
-        makechrootpkg -c -d "${CCACHE_DIR}"/:/ccache -r "${MAKECHROOTPKG_DIR}" -- CCACHE_DIR=/ccache
-        build_outcome=$?
+        makechrootpkg -c -d "${CCACHE_DIR}"/:/ccache -r "${MAKECHROOTPKG_DIR}" -- CCACHE_DIR=/ccache 2>&1 | tee -a "${TMP_LOG}"
+
+        build_outcome=${PIPESTATUS[0]}
 
         # Re-enforce safe exiting
         set -Ee
 
         # If the build failed...
         if [[ "${build_outcome}" != 0 ]]; then
-          important "Build for ${current_package} failed at $(date)"
+          log_file_name="${current_package}-$(uuidgen | cut -d'-' -f5).log"
+          mv "${TMP_LOG}" "${FAILED_BUILDS_LOG_DIR}/${log_file_name}"
+
+          important "Build for ${current_package} failed at $(date). Build output saved to ${log_file_name}"
 
           [[ -f "${PWD}/krack-postbuild.sh" ]] && \
             print_info "Skipping postbuild script due to build failure"

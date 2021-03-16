@@ -20,6 +20,7 @@ readonly NC=$(tput sgr0) # No color/turn off all tput attributes
 readonly CCACHE_DIR="${HOME}/.cache/ccache"
 readonly DATA_DIR="${HOME}/.local/share/krack"
 readonly LOG_DIR="${DATA_DIR}/logs"
+readonly FAILED_BUILDS_LOG_DIR="${LOG_DIR}/failed-builds"
 readonly MASTER_BUILD_DIR="${DATA_DIR}/packages"
 readonly PKG_CACHE_DIR="${DATA_DIR}/pkgcache"
 readonly STATUS_DIR="${DATA_DIR}/.status"
