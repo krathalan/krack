@@ -52,7 +52,7 @@ Set up a pacman repository at the desired directory on your receiver PC. You can
 
 After that, you will need to create a user specifically for receiving packages. Ensure that you can ssh into this user, preferably via keys. Create a directory in this user's home directory to act as a dropbox where packages will be rsync'ed to from the building PC.
 
-Edit /etc/krack/receive.conf with your specific paths. 
+Edit /etc/krack/receive.conf with your specific paths.
 
 - $REPO_ROOT should be where the pacman repo is that you set up earlier.
 - $REPO_DB_FILE is the name of the database file for the repo (e.g. reponame.db.tar).
@@ -64,16 +64,16 @@ Finally, enable and start krack-receive.service.
 
 You will need to create a user specifically for krack-build on the builder PC. You will also need to create a GPG and an ssh key on this user, for signing and uploading packages respectively. Ensure you can ssh from your builder user on your builder PC to your receiving user on your receiving PC. Ensure you can sign files with your new GPG key.
 
-You will need to set up sudo permissions such that your builder user can use makechrootpkg without having to enter a password. You can do this with the following line in /etc/sudoers:
+You will need to set up sudo permissions such that your builder user can use makechrootpkg and arch-nspawn (to update the build chroot) without having to enter a password. You can do this with the following line in /etc/sudoers:
 
-builder-user ALL=(ALL) NOPASSWD:/usr/bin/makechrootpkg
+builder-user ALL=(ALL) NOPASSWD:/usr/bin/makechrootpkg, /usr/bin/arch-nspawn
 
 Change "builder-user" to whatever the name of your builder user is on the builder PC.
 
-Finally, you will need to edit /etc/krack/build.conf for your specific setup. 
+Finally, you will need to edit /etc/krack/build.conf for your specific setup.
 
-- $MAKECHROOTPKG_DIR is where the Arch chroot will live that will be used to build packages. You can specify any directory you like here. /var/lib/makechrootpkg is a safe default. 
-- $SIGNING_KEY should be the GPG key ID of the signing key you wish to use, in the builder user's keyring that you created earlier. 
+- $MAKECHROOTPKG_DIR is where the Arch chroot will live that will be used to build packages. You can specify any directory you like here. /var/lib/makechrootpkg is a safe default.
+- $SIGNING_KEY should be the GPG key ID of the signing key you wish to use, in the builder user's keyring that you created earlier.
 - $DROPBOX_PATH is the path where packages will be rsynced to the receiving user on the remote PC: e.g. receiver-user@173.195.146.142:/home/receiver-user/drop.
 - $LOG_SETTING controls where krack-build will send its output. Note that you cannot disable classic logging, but you can disable systemd journal logging.
 
