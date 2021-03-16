@@ -203,8 +203,13 @@ while true; do
     print_info "Oh boy, extra naps! Starting asleep"
     SKIP_COMPLETE="true"
   else
-    print_info "Cleaning out master package directory before we begin building"
+    print_info "Cleaning out master package directory before building"
     clean_pkgbuild_dirs
+
+    # Update build chroot once before each build cycle, not each time
+    # we build with makechrootpkg (to reduce strain on mirrors)
+    print_info "Upgrading build chroot before building"
+    arch-nspawn "${MAKECHROOTPKG_DIR}" pacman -Syu
 
     for directory in "${MASTER_BUILD_DIR:-}"/*; do
       if [[ -d "${directory}" ]]; then
@@ -263,12 +268,11 @@ while true; do
         set +Ee
 
         # -c: Clean the chroot before building
-        # -u: Update the working copy of the chroot before building
         # -d: Bind directory into build chroot as read-write
         # -r: The chroot dir to use
         # Arguments passed to makechrootpkg after the
         # end-of-options marker (--) will be passed to makepkg.
-        makechrootpkg -c -u -d "${CCACHE_DIR}"/:/ccache -r "${MAKECHROOTPKG_DIR}" -- CCACHE_DIR=/ccache
+        makechrootpkg -c -d "${CCACHE_DIR}"/:/ccache -r "${MAKECHROOTPKG_DIR}" -- CCACHE_DIR=/ccache
         build_outcome=$?
 
         # Re-enforce safe exiting
