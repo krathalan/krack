@@ -51,7 +51,7 @@ source /usr/lib/krack/common
 source /etc/krack/build.conf
 
 # Used for logging to track failed builds
-readonly TMP_DIR="$(mktemp -d -t "${SCRIPT_NAME}_XXXXXXXX")"
+readonly TMP_DIR="$(mktemp -d -t "krack-build_XXXXXXXX")"
 readonly TMP_LOG="${TMP_DIR}/tmp.log"
 
 # -----------------------------------------
@@ -220,7 +220,7 @@ while true; do
     # Update build chroot once before each build cycle, not each time
     # we build with makechrootpkg (to reduce strain on mirrors)
     print_info "Upgrading build chroot before building"
-    arch-nspawn "${MAKECHROOTPKG_DIR}/root" pacman -Syu
+    arch-nspawn "${MAKECHROOTPKG_DIR}/root" pacman -Syu --noconfirm
 
     for directory in "${MASTER_BUILD_DIR:-}"/*; do
       if [[ -d "${directory}" ]]; then
