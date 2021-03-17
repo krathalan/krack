@@ -58,8 +58,17 @@ readonly TMP_LOG="${TMP_DIR}/tmp.log"
 # --------------- Functions ---------------
 # -----------------------------------------
 
+#######################################
 # Checks to see if `krackctl awaken` has been invoked while
 # krack-build is sleeping
+# Globals:
+#   STATUS_DIR
+#   sleep_pid
+# Arguments:
+#   none
+# Returns:
+#   none
+#######################################
 check_awaken_request()
 {
   if [[ -f "${STATUS_DIR}/krack-request-awaken" ]]; then
@@ -73,7 +82,15 @@ check_awaken_request()
   fi
 }
 
-# Removes old packages built with make(chroot)pkg
+#######################################
+# Removes old build artifacts (packages, logs, sigs).
+# Globals:
+#   MASTER_BUILD_DIR
+# Arguments:
+#   none
+# Returns:
+#   none
+#######################################
 clean_pkgbuild_dirs()
 {
   local toClean
@@ -94,7 +111,6 @@ clean_up()
 # Prints everything to >&2 (STDERR).
 # Globals:
 #   RED, NC
-#   SCRIPT_NAME
 # Arguments:
 #   $1: error message to print
 # Returns:
@@ -110,10 +126,9 @@ exit_script_on_failure()
 #######################################
 # Prints an info message.
 # Globals:
-#   RED, NC
-#   SCRIPT_NAME
+#   WHITE, NC
 # Arguments:
-#   $1: error message to print
+#   $1: info message to print
 # Returns:
 #   none
 #######################################
@@ -126,8 +141,19 @@ print_info()
   fi
 }
 
-# Stuff for $(krackctl status)
+# Stuff for $(krackctl status) below
 
+#######################################
+# Prints an important message.
+# Globals:
+#   RED, NC
+#   LOG_SETTING
+#   STATUS_IMPORTANT_MESSAGE_FILE
+# Arguments:
+#   $1: info message to print
+# Returns:
+#   none
+#######################################
 important()
 {
   sed -i '/nothing yet :)/d' "${STATUS_IMPORTANT_MESSAGE_FILE}"
@@ -140,6 +166,16 @@ important()
   fi
 }
 
+#######################################
+# Updates the state of the running krack-build instance.
+# Globals:
+#   NEXT_WAKE
+#   STATUS_DATE_BUILD_START_FILE
+# Arguments:
+#   $1: info message to print
+# Returns:
+#   none
+#######################################
 state()
 {
   case "$1" in
@@ -158,6 +194,16 @@ state_helper()
   printf "%s" "$1" > "${STATUS_STATE_FILE}"
 }
 
+#######################################
+# Updates the substate of the running krack-build instance.
+# Globals:
+#   current_package
+#   STATUS_DATE_BUILD_START_FILE
+# Arguments:
+#   none
+# Returns:
+#   none
+#######################################
 substate()
 {
   case "$1" in
