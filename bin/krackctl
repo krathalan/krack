@@ -273,7 +273,7 @@ case "$1" in
   build-all) build_all ;;
   clean-logs) clean_logs "$2" ;;
   create-chroot) create_chroot ;;
-  failed-builds) failed-builds ;;
+  failed-builds) failed_builds ;;
   request-build) request_build "$2" ;;
   pending-builds) pending_builds ;;
   cancel-all-requests) cancel_all_requests ;;
