@@ -11,11 +11,18 @@ The specific use case is having a spare PC at home that you possibly use for a m
 
 All of the documentation comes in the form of man pages. `man krack` is the main one, but there are man pages for each Krack program.
 
+## Features
+1. Automated building every user-specified X hours.
+2. Ccache compliance for reduced build times and power usage.
+3. Per-package pre/post-gitpull and pre/post-makechrootpkg user script execution.
+4. Advanced logging (homegrown and systemd) that saves and indexes build failures for easy diagnosis.
+5. Low overhead.
+
 ### Outstanding issues
 1. No auto-import of GPG keys to verify source files.
 
 ## Installation
 Install `krack` from the AUR: https://aur.archlinux.org/packages/krack/
 
-## Setup
+## More info
 See `man krack`.
