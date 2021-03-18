@@ -1,3 +1,7 @@
+# Homepage: https://git.sr.ht/~krathalan/krack
+# Copyright (C) 2020-2021 Hunter Peavey
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 [Unit]
 Description=Watches a specified dropbox for packages to add to a specified pacman repo
 
