@@ -16,7 +16,7 @@ The specific use case krack is built for, is having a PC at home which can build
 
 Krack-build is the largest program of the bunch and will run on an open tmux instance on the building PC as a user specifically made for building and sending packages. It will create a directory ~/.local/share/krack in the invoking user's home directory. Under this directory, several more are created: logs, for holding logs automatically created by krack-build; packages, for holding package directories containing PKGBUILDs and other source files, and pkgcache, for holding the latest built packages.
 
-The logs directory will be filled with logs containing the entirety of krack-build's output, including all of makechrootpkg's output. These logs can grow quite large, so krackctl can help you parse these logs easily and get a good feel for the health of your running krack-build instance.
+The logs directory will be filled with logs containing the entirety of krack-build's output, including all of makechrootpkg's output. These logs can grow quite large, so krackctl can help you parse these logs easily and get a good feel for the health of your running krack-build instance. You can read more about krackctl in *READING LOGS*.
 
 You should fill the packages directory with other directories, each containing PKGBUILDs and other build files, as if just cloned from the AUR. If you have personal packages, you can link them from other directories into krack-build's package directory and it will treat them as any other package.
 
@@ -108,9 +108,11 @@ Krack has several useful ways for you to view and parse logs. By default, krack-
 
 You can run *krackctl status* on the builder PC to get a good overview of your current running krack-build instance. Using the built-in log system, it will display the current state (e.g. sleeping, building, ...), the current substate if there is one (e.g. building gimp-git), the latest 10 errors from most to least recent, the filename of the current log file, and the last 10 lines of raw output from the running krack-build instance. *krackctl watch-status* does the same thing, but refreshes every second and fills the entire terminal height.
 
-You can also view the raw log files in ~/.local/share/krack/logs. They contain the entire output of the krack-build instance they were generated from, including all makechrootpkg output.
+Each time krack-build builds a package, it saves the full output of the makechrootpkg command for that package build to a temporary log file. If the makechrootpkg command fails, the temporary file is made permanent and assigned a failure ID. Failed build logs can be listed with the command *krackctl failed-builds*. You can use your favorite pager to view these log files.
 
-You can also use journalctl to view and parse messages krack-build has sent to the system journal. Run *journalctl -t krack-build* to view all the log entries. Krack-build will only output info and error messages to the journal; no other output (such as from makechrootpkg) will be output here. You can run *journalctl -t krack-build -p err* to view all entries classified as an error; this will list all of the failed package builds. You can combine any of these options and more with the *-f* option for journalctl to tail the log. See *man journalctl* for more options.
+You can view the raw log files in ~/.local/share/krack/logs. They contain the entire output of the krack-build instance they were generated from, including all makechrootpkg output.
+
+You can use journalctl to view and parse messages krack-build has sent to the system journal. Run *journalctl -t krack-build* to view all the log entries. Krack-build will only output info and error messages to the journal; no other output (such as from makechrootpkg) will be output here. You can run *journalctl -t krack-build -p err* to view all entries classified as an error; this will list all of the failed package builds. You can combine any of these options and more with the *-f* option for journalctl to tail the log. See *man journalctl* for more options.
 
 If you are not seeing krack-build logs in the systemd journal, ensure that systemd logging is enabled in /etc/krack/build.conf, and ensure that you have sufficient permissions for viewing those log entries.
 
