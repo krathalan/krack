@@ -57,6 +57,12 @@ _krackctl_completions()
   elif [[ "${COMP_WORDS[1]}" == "request-build" ]] && [[ "${#COMP_WORDS[@]}" == "3" ]]; then
     # Return list of all packages in master build dir
     all_packages=("${MASTER_BUILD_DIR}"/*)
+
+    for package in "${MASTER_BUILD_DIR}"/*; do
+      # Remove preceding "$MASTER_BUILD_DIR" in completions
+      all_packages+=("${package##*/}")
+    done
+
     mapfile -t COMPREPLY <<< "$(compgen -W "${all_packages[*]}" "${COMP_WORDS[2]}")"
   fi
 }
