@@ -16,6 +16,9 @@ krack-build [_--flags_]...
 	Starts krack-build as if it had just finished a build cycle. It will sleep for the defined SLEEP_HOURS in /etc/krack/build.conf, as usual. This flag is useful after updating krack.++
 	e.g. krack-build *--start-asleep*
 
+# SEE ALSO
+*krack*(1), *krackctl*(1)
+
 # BUGS
 
 Please file requests, suggestions, and report any bugs at: https://todo.sr.ht/~krathalan/krack++

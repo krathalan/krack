@@ -16,6 +16,9 @@ Krackctl gives you insight into the running krack-build instance and gives you s
 
 ## Insights
 
+krackctl *failed-builds*
+	Lists all of the failed build logs. You can use your favorite pager to view these logs.
+
 krackctl *pending-builds*
 	Lists the number of packages with a 'krack-request-build' file in their package directory. In other words, the list of packages that are guaranteed to be built the next time krack-build checks their up-to-date status.
 
@@ -43,6 +46,9 @@ krackctl *cancel-all-requests*
 
 krackctl *create-chroot*
 	This command must be run as a user with sudo privileges. This command will create a build chroot at the defined MAKECHROOTPKG_DIR in /etc/krack/build.conf if that directory doesn't exist yet.
+
+# SEE ALSO
+*krack*(1), *krack-build*(1)
 
 # BUGS
 

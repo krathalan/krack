@@ -151,6 +151,9 @@ Host 168.200.255.199
         Port 9238
 ```
 
+# SEE ALSO
+*krackctl*(1), *krack-build*(1)
+
 # BUGS
 
 Please file requests, suggestions, and report any bugs at: https://todo.sr.ht/~krathalan/krack++
