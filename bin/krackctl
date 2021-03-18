@@ -135,6 +135,8 @@ failed_builds()
 
     printf "%s%s%s (failed at %s%s%s)" "${YELLOW}" "${failed_build}" "${NC}" "${BLUE}" "${log_creation_date}" "${NC}"
   done
+
+  printf "\n"
 }
 
 #######################################
