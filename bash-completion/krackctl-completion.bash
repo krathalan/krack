@@ -55,9 +55,6 @@ _krackctl_completions()
   if [[ "${#COMP_WORDS[@]}" -lt "3" ]]; then
     mapfile -t COMPREPLY <<< "$(compgen -W "awaken build-all clean-logs create-chroot failed-builds request-build pending-builds cancel-all-requests status watch-status" "${COMP_WORDS[1]}")"
   elif [[ "${COMP_WORDS[1]}" == "request-build" ]] && [[ "${#COMP_WORDS[@]}" == "3" ]]; then
-    # Return list of all packages in master build dir
-    all_packages=("${MASTER_BUILD_DIR}"/*)
-
     for package in "${MASTER_BUILD_DIR}"/*; do
       # Remove preceding "$MASTER_BUILD_DIR" in completions
       all_packages+=("${package##*/}")
