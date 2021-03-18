@@ -19,7 +19,7 @@ All of the documentation comes in the form of man pages. `man krack` is the main
 5. Low overhead.
 
 ### Outstanding issues
-1. No auto-import of GPG keys to verify source files.
+1. No option to auto-import GPG keys for source file verification.
 
 ## Installation
 Install `krack` from the AUR: https://aur.archlinux.org/packages/krack/
