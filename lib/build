@@ -326,7 +326,7 @@ while true; do
         printf "" > "${TMP_LOG}"
 
         # Disable some safety stuff here to provide nice output and continue building other packages if one build fails
-        set +Ee
+        set +Eeo pipefail
 
         # -c: Clean the chroot before building
         # -d: Bind directory into build chroot as read-write
@@ -338,7 +338,7 @@ while true; do
         build_outcome=${PIPESTATUS[0]}
 
         # Re-enforce safe exiting
-        set -Ee
+        set -Eeo pipefail
 
         # If the build failed...
         if [[ "${build_outcome}" != 0 ]]; then
