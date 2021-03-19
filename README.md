@@ -20,6 +20,7 @@ All of the documentation comes in the form of man pages. `man krack` is the main
 
 ### Outstanding issues
 1. No option to auto-import GPG keys for source file verification.
+2. I would like to save diffs of each git pull for manual review (after build time) if it leads to a package build.
 
 ## Installation
 Install `krack` from the AUR: https://aur.archlinux.org/packages/krack/
