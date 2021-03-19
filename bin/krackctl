@@ -75,11 +75,16 @@ create_chroot()
 
 request_build()
 {
-  [[ ! -e "${MASTER_BUILD_DIR}/$1" ]] &&
-    exit_script_on_failure "Cannot find package $1"
+  shift 
 
-  touch "${MASTER_BUILD_DIR}/$1/krack-request-build"
-  print_info "Build requested for package $1"
+  while [[ $# -gt 0 ]]; do
+    [[ ! -e "${MASTER_BUILD_DIR}/$1" ]] &&
+      exit_script_on_failure "Cannot find package $1"
+
+    touch "${MASTER_BUILD_DIR}/$1/krack-request-build"
+    print_info "Build requested for package $1"
+    shift
+  done
 }
 
 pending_builds()
@@ -261,7 +266,7 @@ case "$1" in
   clean-logs) clean_logs "$2" ;;
   create-chroot) create_chroot ;;
   failed-builds) failed_builds ;;
-  request-build) request_build "$2" ;;
+  request-build) request_build "$@" ;;
   pending-builds) pending_builds ;;
   cancel-all-requests) cancel_all_requests ;;
   status) status "$@" ;;
