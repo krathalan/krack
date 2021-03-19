@@ -24,7 +24,7 @@ _krackctl_completions()
       all_packages+=("${package##*/}")
     done
 
-    mapfile -t COMPREPLY <<< "$(compgen -W "${all_packages[*]}" "${COMP_WORDS[2]}")"
+    mapfile -t COMPREPLY <<< "$(compgen -W "${all_packages[*]}" "${COMP_WORDS[-1]}")"
   fi
 }
 
