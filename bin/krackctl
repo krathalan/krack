@@ -93,7 +93,7 @@ pending_builds()
   local to_print
   mapfile -t list_of_pending_builds <<< "$(find "${MASTER_BUILD_DIR}" -name "krack-request-build")"
 
-  print_info "List of pending package build requests:"
+  printf "List of pending package build requests:\n---------------------------------------\n"
 
   for pending_build in "${list_of_pending_builds[@]}"; do
     # Use variable substitution to isolate name of pkg directory
