@@ -329,7 +329,7 @@ while true; do
 
         # If the build failed...
         if [[ "${build_outcome}" != 0 ]]; then
-          log_file_name="${current_package}-$(uuidgen | cut -d'-' -f5).log"
+          log_file_name="${current_package}-$(date "+%Y%m%d-%H%M%S").log"
           mv "${TMP_LOG}" "${FAILED_BUILDS_LOG_DIR}/${log_file_name}"
 
           important "Build for ${current_package} failed at $(date). Build output saved to ${log_file_name}"
