@@ -23,10 +23,6 @@ set -Eeuo pipefail
 # ----------- Program variables -----------
 # -----------------------------------------
 
-# Source a lot of common (between krack scripts) variables
-# shellcheck disable=SC1091
-source /usr/lib/krack/common
-
 # Source user conf
 # shellcheck disable=SC1091
 source /etc/krack/receive.conf
@@ -89,7 +85,6 @@ add_packages()
 # Prints passed error message before premature exit.
 # Prints everything to >&2 (STDERR).
 # Globals:
-#   RED, NC
 #   SCRIPT_NAME
 # Arguments:
 #   $1: error message to print
@@ -98,17 +93,16 @@ add_packages()
 #######################################
 exit_script_on_failure()
 {
-  printf "%sError%s: %s\n" "${RED}" "${NC}" "$1" >&2
+  printf "ERROR: %s\n" "$1" >&2
   exit 1
 }
 
 #######################################
 # Prints an info message.
 # Globals:
-#   RED, NC
 #   SCRIPT_NAME
 # Arguments:
-#   $1: error message to print
+#   $1: info message to print
 # Returns:
 #   none
 #######################################

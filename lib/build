@@ -106,7 +106,12 @@ clean_up()
 exit_script_on_failure()
 {
   state "death"
-  printf "%sError%s: %s\n" "${RED}" "${NC}" "$1" >&2
+  printf "%sERROR%s: %s\n" "${RED}" "${NC}" "$1" >&2
+
+  if [[ "${LOG_SETTING}" == *"systemd"* ]]; then
+    printf "ERROR: %s" "$1" | systemd-cat --identifier="krack-build" --priority="emerg"
+  fi
+
   exit 1
 }
 
@@ -145,7 +150,7 @@ important()
 {
   sed -i '/nothing yet :)/d' "${STATUS_IMPORTANT_MESSAGE_FILE}"
   printf "%s\n" "$1" >> "${STATUS_IMPORTANT_MESSAGE_FILE}"
-  printf "%sError: %s%s\n" "${RED}" "$1" "${NC}"
+  printf "%sERROR: %s%s\n" "${RED}" "$1" "${NC}"
   
   
   if [[ "${LOG_SETTING}" == *"systemd"* ]]; then
