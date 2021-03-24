@@ -249,7 +249,7 @@ while true; do
   printf "nothing yet :)" > "${STATUS_IMPORTANT_MESSAGE_FILE}"
 
   if [[ "${SKIP_COMPLETE}" == "false" ]] && [[ "${START_ASLEEP}" == "true" ]]; then
-    print_info "Oh boy, extra naps! Starting asleep"
+    print_info "Oh boy, extra naps! Starting asleep, zzZZzzz..."
     SKIP_COMPLETE="true"
   else
     print_info "Cleaning out master package directory before building"
