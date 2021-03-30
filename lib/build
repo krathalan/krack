@@ -224,6 +224,7 @@ substate_helper()
 mkdir -p "${MASTER_BUILD_DIR}" \
          "${CCACHE_DIR}" \
          "${FAILED_BUILDS_LOG_DIR}" \
+         "${GIT_DIFF_DIR}" \
          "${PKG_CACHE_DIR}" \
          "${STATUS_DIR}"
 
@@ -273,24 +274,25 @@ while true; do
           source "${PWD}/krack-prepull.sh"
         fi
 
+        # Get current git commit hash
+        old_commit_hash="$(git rev-parse HEAD)"
+
         # Check out a fresh pkgbuild; pull any diffs
         git checkout PKGBUILD &> /dev/null
 
-        # This command (git pull) can fail for a multitude of reasons,
-        # and we should prepare to handle it gracefully
+        # git pull can fail for a multitude of reasons, and we 
+        # should prepare to handle it gracefully
         set +Ee
 
         git_output="$(git pull)"
         git_pull_return_code="$?"
 
+        set -Ee
+
         if [[ "${git_pull_return_code}" != 0 ]]; then
           important "Git pull in package directory failed before building ${current_package}. Cancelling build"
-          # Don't forget to re-set -Ee if we're going to `continue` out of this build cycle
-          set -Ee
           continue
         fi
-
-        set -Ee
 
         if [[ -f "${PWD}/krack-postpull.sh" ]]; then
           print_info "Executing krack-postpull.sh"
@@ -308,6 +310,14 @@ while true; do
 
         if [[ "${directory}" == *"git"* ]]; then
           print_info "${current_package} is a -git package; forcing update"
+        fi
+
+        # Build is approved, get new git commit hash only if git pulled in something
+        if [[ "${git_output}" != *"Already up to date."* ]]; then
+          new_commit_hash="$(git rev-parse HEAD)"
+          # ...and store diff to diff dir
+          diff_file_name="${current_package}-$(date "+%Y%m%d-%H%M%S").diff"
+          git diff "${old_commit_hash}".."${new_commit_hash}" &> "${GIT_DIFF_DIR}/${diff_file_name}"
         fi
 
         substate "making"

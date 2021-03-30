@@ -118,6 +118,7 @@ cancel_all_requests()
 failed_builds()
 {
   printf "Failed builds:\n--------------\n"
+  local step_counter=1
 
   # List build and date failed
   for failed_build in "${FAILED_BUILDS_LOG_DIR}"/*; do
@@ -125,7 +126,23 @@ failed_builds()
     local log_creation_date
     log_creation_date="$(date -d "$(stat -c "%w" "${failed_build}")" "+%c")"
 
-    printf "%s%s%s (failed at %s%s%s)\n" "${YELLOW}" "${failed_build}" "${NC}" "${BLUE}" "${log_creation_date}" "${NC}"
+    printf "%s. %s%s%s (failed at %s%s%s)\n" "${step_counter}" "${YELLOW}" "${failed_build}" "${NC}" "${BLUE}" "${log_creation_date}" "${NC}"
+
+    step_counter=$(( step_counter + 1 ))
+  done
+}
+
+list_diffs()
+{
+  printf "Diffs:\n------\n"
+  local step_counter=1
+
+  for diff_file in "${GIT_DIFF_DIR}"/*; do
+    # Get file creation date of diff file and make it more readable
+    local diff_creation_date
+    diff_creation_date="$(date -d "$(stat -c "%w" "${diff_file}")" "+%c")"
+
+    printf "%s. %s%s%s (created at %s%s%s)\n" "${step_counter}" "${YELLOW}" "${diff_file}" "${NC}" "${BLUE}" "${diff_creation_date}" "${NC}"
   done
 }
 
@@ -266,6 +283,7 @@ case "$1" in
   clean-logs) clean_logs "$2" ;;
   create-chroot) create_chroot ;;
   failed-builds) failed_builds ;;
+  list-diffs) list_diffs ;;
   request-build) request_build "$@" ;;
   pending-builds) pending_builds ;;
   cancel-all-requests) cancel_all_requests ;;
