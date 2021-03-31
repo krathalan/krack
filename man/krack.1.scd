@@ -108,7 +108,11 @@ Krack has several useful ways for you to view and parse logs. By default, krack-
 
 You can run *krackctl status* on the builder PC to get a good overview of your current running krack-build instance. Using the built-in log system, it will display the current state (e.g. sleeping, building, ...), the current substate if there is one (e.g. building gimp-git), the latest 10 errors from most to least recent, the filename of the current log file, and the last 10 lines of raw output from the running krack-build instance. *krackctl watch-status* does the same thing, but refreshes every second and fills the entire terminal height.
 
-Each time krack-build builds a package, it saves the full output of the makechrootpkg command for that package build to a temporary log file. If the makechrootpkg command fails, the temporary file is made permanent and assigned a failure ID. Failed build logs can be listed with the command *krackctl failed-builds*. You can use your favorite pager to view these log files.
+If krack-build pulls in new commits during the "git pull" part of the build process, it will save the output of the diff between the new commit and the old commit to a file. Diffs can be listed with the command *krackctl list-diffs*.
+
+Each time krack-build builds a package, it saves the full output of the makechrootpkg command for that package build to a temporary log file. If the makechrootpkg command fails, the temporary file is made permanent. Failed build logs can be listed with the command *krackctl failed-builds*.
+
+You can use your favorite pager to view these files.
 
 You can view the raw log files in ~/.local/share/krack/logs. They contain the entire output of the krack-build instance they were generated from, including all makechrootpkg output.
 
