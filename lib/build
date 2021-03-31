@@ -19,8 +19,7 @@
 set -Eeuo pipefail
 
 # Kill possible waiting sleep process if krack-build is terminated
-trap "state death && kill 0" SIGINT ERR
-trap "clean_up" EXIT SIGINT ERR
+trap "clean_up && state death && kill 0" SIGINT EXIT
 
 # -----------------------------------------
 # ----------- Program variables -----------
