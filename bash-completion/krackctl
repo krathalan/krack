@@ -17,7 +17,7 @@ _krackctl_completions()
   # COMP_WORDS[2] = only used for request-build
 
   if [[ "${#COMP_WORDS[@]}" -lt "3" ]]; then
-    mapfile -t COMPREPLY <<< "$(compgen -W "awaken build-all clean-logs create-chroot failed-builds request-build pending-builds cancel-all-requests status watch-status" "${COMP_WORDS[1]}")"
+    mapfile -t COMPREPLY <<< "$(compgen -W "awaken build-all clean-logs create-chroot failed-builds list-diffs request-build pending-builds cancel-all-requests status watch-status" "${COMP_WORDS[1]}")"
   elif [[ "${COMP_WORDS[1]}" == "request-build" ]] && [[ "${#COMP_WORDS[@]}" -ge "3" ]]; then
     for package in "${MASTER_BUILD_DIR}"/*; do
       # Remove preceding "$MASTER_BUILD_DIR" in completions

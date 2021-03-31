@@ -318,6 +318,7 @@ while true; do
           # ...and store diff to diff dir
           diff_file_name="${current_package}-$(date "+%Y%m%d-%H%M%S").diff"
           git diff "${old_commit_hash}".."${new_commit_hash}" &> "${GIT_DIFF_DIR}/${diff_file_name}"
+          print_info "Stored diff of pull as ${GIT_DIFF_DIR}/${diff_file_name}"
         fi
 
         substate "making"
