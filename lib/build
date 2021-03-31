@@ -326,7 +326,7 @@ while true; do
 
         # Empty temporary log file for makechrootpkg output
         # (if makechrootpkg command fails we will make this log permanent and assign a unique build fail ID to it)
-        printf "" > "${TMP_LOG}"
+        :> "${TMP_LOG}"
 
         # Disable some safety stuff here to provide nice output and continue building other packages if one build fails
         set +Eeo pipefail
@@ -346,7 +346,7 @@ while true; do
         # If the build failed...
         if [[ "${build_outcome}" != 0 ]]; then
           log_file_name="${current_package}-$(date "+%Y%m%d-%H%M%S").log"
-          mv "${TMP_LOG}" "${FAILED_BUILDS_LOG_DIR}/${log_file_name}"
+          cp "${TMP_LOG}" "${FAILED_BUILDS_LOG_DIR}/${log_file_name}"
 
           important "Build for ${current_package} failed at $(date). Build output saved to ${log_file_name}"
 
