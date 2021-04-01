@@ -118,6 +118,12 @@ cancel_all_requests()
 failed_builds()
 {
   printf "Failed builds:\n--------------\n"
+
+  # Check if failed log directory is empty
+  if [[ -n "$(find "${FAILED_BUILDS_LOG_DIR}" -maxdepth 0 -empty)" ]]; then
+    exit
+  fi
+
   local step_counter=1
 
   # List build and date failed
@@ -135,6 +141,12 @@ failed_builds()
 list_diffs()
 {
   printf "Diffs:\n------\n"
+
+  # Check if diff directory is empty
+  if [[ -n "$(find "${GIT_DIFF_DIR}" -maxdepth 0 -empty)" ]]; then
+    exit
+  fi
+
   local step_counter=1
 
   for diff_file in "${GIT_DIFF_DIR}"/*; do
