@@ -33,6 +33,17 @@ readonly SCRIPT_NAME="${0##*/}"
 # --------------- Functions ---------------
 # -----------------------------------------
 
+exit_script_on_failure()
+{
+  printf "%sError%s: %s\n" "${RED}" "${NC}" "$1" >&2
+  exit 1
+}
+
+print_info()
+{
+  printf "%sInfo:%s %s\n" "${WHITE}" "${NC}" "$1"
+}
+
 awaken()
 {
   touch "${STATUS_DIR}/krack-request-awaken"
@@ -158,41 +169,16 @@ list_diffs()
   done
 }
 
-#######################################
-# Prints passed error message before premature exit.
-# Prints everything to >&2 (STDERR).
-# Globals:
-#   RED, NC
-#   SCRIPT_NAME
-# Arguments:
-#   $1: error message to print
-# Returns:
-#   none
-#######################################
-exit_script_on_failure()
-{
-  printf "%sError%s: %s\n" "${RED}" "${NC}" "$1" >&2
-  exit 1
-}
-
 print_help()
 {
-  man krackctl
-}
+  printf "Command not recognized. Open man page? "
+  read -r -p "[y/N] " response
 
-#######################################
-# Prints an info message.
-# Globals:
-#   RED, NC
-#   SCRIPT_NAME
-# Arguments:
-#   $1: error message to print
-# Returns:
-#   none
-#######################################
-print_info()
-{
-  printf "%sInfo:%s %s\n" "${WHITE}" "${NC}" "$1"
+  case "${response}" in
+    [yY][eE][sS]|[yY])
+      man krackctl
+      ;;
+  esac
 }
 
 status()
