@@ -15,12 +15,12 @@ All of the documentation comes in the form of man pages. `man krack` is the main
 1. Automated building every user-specified X hours.
 2. Ccache compliance for reduced build times and power usage.
 3. Per-package pre/post-gitpull and pre/post-makechrootpkg user script execution.
-4. Advanced logging (homegrown and systemd) that saves and indexes build failures for easy diagnosis.
-5. Low overhead.
+4. Diffs from `git pull`s are saved and stored for later manual review.
+5. Advanced logging (homegrown and systemd) that saves and indexes build failures for easy diagnosis.
+6. Low overhead.
 
 ### Outstanding issues
 1. No option to auto-import GPG keys for source file verification.
-2. I would like to save diffs of each git pull for manual review (after build time) if it leads to a package build.
 
 ## Installation
 Install `krack` from the AUR: https://aur.archlinux.org/packages/krack/
