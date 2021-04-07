@@ -166,6 +166,8 @@ list_diffs()
     diff_creation_date="$(date -d "$(stat -c "%w" "${diff_file}")" "+%c")"
 
     printf "%s. %s%s%s (created at %s%s%s)\n" "${step_counter}" "${YELLOW}" "${diff_file}" "${NC}" "${BLUE}" "${diff_creation_date}" "${NC}"
+
+    step_counter=$(( step_counter + 1 ))
   done
 }
 
@@ -177,6 +179,27 @@ print_help()
   case "${response}" in
     [yY][eE][sS]|[yY])
       man krackctl
+      ;;
+  esac
+}
+
+review-diffs()
+{
+  # Check if diff directory is empty
+  if [[ -n "$(find "${GIT_DIFF_DIR}" -maxdepth 0 -empty)" ]]; then
+    exit
+  fi
+
+  for diff_file in "${GIT_DIFF_DIR}"/*; do
+    ${PAGER} "${diff_file}"
+  done
+
+  printf "Done. Clear diffs? "
+  read -r -p "[y/N] " response
+
+  case "${response}" in
+    [yY][eE][sS]|[yY])
+      rm -f "${GIT_DIFF_DIR}"/*
       ;;
   esac
 }
