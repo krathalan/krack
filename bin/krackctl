@@ -191,7 +191,7 @@ review_diffs()
   fi
 
   for diff_file in "${GIT_DIFF_DIR}"/*; do
-    ${PAGER} "${diff_file}"
+    ${PAGER:-less} "${diff_file}"
   done
 
   printf "Done. Clear diffs? "
