@@ -183,7 +183,7 @@ print_help()
   esac
 }
 
-review-diffs()
+review_diffs()
 {
   # Check if diff directory is empty
   if [[ -n "$(find "${GIT_DIFF_DIR}" -maxdepth 0 -empty)" ]]; then
@@ -314,6 +314,7 @@ case "$1" in
   create-chroot) create_chroot ;;
   failed-builds) failed_builds ;;
   list-diffs) list_diffs ;;
+  review-diffs) review_diffs ;;
   request-build) request_build "$@" ;;
   pending-builds) pending_builds ;;
   cancel-all-requests) cancel_all_requests ;;
