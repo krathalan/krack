@@ -190,8 +190,14 @@ review_diffs()
     exit
   fi
 
+  if command -v bat &> /dev/null; then
+    krack_pager="bat"
+  else
+    krack_pager="${PAGER:-less}"
+  fi
+
   for diff_file in "${GIT_DIFF_DIR}"/*; do
-    ${PAGER:-less} "${diff_file}"
+    "${krack_pager}" "${diff_file}"
   done
 
   printf "Done. Clear diffs? "
