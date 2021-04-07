@@ -378,7 +378,7 @@ while true; do
 
           # Sleep for 2 seconds; sometimes the rsync command starts before the sig file has appeared on slower devices
           sleep 2
-          rsync -a --progress "${package_tarball}" "${package_tarball}.sig" "${DROPBOX_PATH}"
+          rsync -a --progress "${package_tarball}" "${package_tarball}.sig" "${DROPBOX_PATH}:/home/krack-receive/package-dropbox"
 
           print_info "Package ${current_package} built and uploaded successfully; please give your cat a treat 😻"
         done

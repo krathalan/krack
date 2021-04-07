@@ -50,13 +50,12 @@ Krackctl can be used on the builder PC as the builder user to control the runnin
 
 Set up a pacman repository at the desired directory on your receiver PC. You can then host this directory with web server software like Nginx or Apache. The instructions for both of these steps are outside the scope of this man page.
 
-After that, you will need to create a user specifically for receiving packages. Ensure that you can ssh into this user, preferably via keys. Create a directory in this user's home directory to act as a dropbox where packages will be rsync'ed to from the building PC.
+After that, you will need to create a user with the username "krack-receive" specifically for receiving packages. Ensure that you can ssh into this user, preferably via keys. Create a directory "package-dropbox" in this user's home directory to act as a dropbox where packages will be rsync'ed to from the building PC. *You must name the user "krack-receive" or the systemd unit sandboxing will render the unit broken. You must name the dropbox directory "package-dropbox" or krack-receive will not work at all.*
 
-Edit /etc/krack/receive.conf with your specific paths.
+Edit /etc/krack/receive.conf with your specific paths:
 
 - $REPO_ROOT should be where the pacman repo is that you set up earlier.
 - $REPO_DB_FILE is the name of the database file for the repo (e.g. reponame.db.tar).
-- $DROPBOX_PATH is where you will be sending packages; this should be the same directory you created earlier in the user's home directory.
 
 Finally, enable and start krack-receive.service.
 
@@ -70,11 +69,11 @@ builder-user ALL=(ALL) NOPASSWD:/usr/bin/makechrootpkg, /usr/bin/arch-nspawn
 
 Change "builder-user" to whatever the name of your builder user is on the builder PC.
 
-Finally, you will need to edit /etc/krack/build.conf for your specific setup.
+Finally, you will need to edit /etc/krack/build.conf for your specific setup:
 
 - $MAKECHROOTPKG_DIR is where the Arch chroot will live that will be used to build packages. You can specify any directory you like here. /var/lib/makechrootpkg is a safe default.
 - $SIGNING_KEY should be the GPG key ID of the signing key you wish to use, in the builder user's keyring that you created earlier.
-- $DROPBOX_PATH is the path where packages will be rsynced to the receiving user on the remote PC: e.g. receiver-user@173.195.146.142:/home/receiver-user/drop.
+- $DROPBOX_PATH is the path to the remote PC using rsync USER@HOST syntax: e.g. receiver-user@173.195.146.142.
 - $LOG_SETTING controls where krack-build will send its output. Note that you cannot disable classic logging, but you can disable systemd journal logging.
 
 ## LAST STEP

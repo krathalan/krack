@@ -10,10 +10,6 @@ krack-receive will read configuration options /etc/krack/receive.conf. The defau
 
 You should never run krack-receive from the command line. It should run as a systemd service under krack-receive.service.
 
-# SECURITY
-
-krack-receive.service already enforces some strong security protections (disabled networking, capability and syscall filtering, among others), but you can still increase the protections it offers.
-
 # SEE ALSO
 *krack*(1), *krackctl*(1)
 

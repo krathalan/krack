@@ -27,6 +27,8 @@ set -Eeuo pipefail
 # shellcheck disable=SC1091
 source /etc/krack/receive.conf
 
+readonly DROPBOX_PATH="/home/krack-receive/package-dropbox"
+
 # -----------------------------------------
 # --------------- Functions ---------------
 # -----------------------------------------
