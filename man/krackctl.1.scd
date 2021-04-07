@@ -43,7 +43,7 @@ krackctl *build-all*
 	Creates an empty file 'krack-request-build' in every package directory and clears the krack-build cache. This will force krack-build to build and upload every package the next time krack-build checks for each package's up-to-date status.
 
 krackctl *request-build* _package_
-	Creates an empty file 'krack-request-build' in the specified package's directory. This will force krack-build to build it the next time it checks for the package's up-to-date status. However, the rebuilt package will not be uploaded if the rebuilt package matches the name of a preexisting package in the local krack-build cache.
+	Creates an empty file 'krack-request-build' in the specified package's directory. This will force krack-build to build it the next time it checks for the package's up-to-date status. However, the rebuilt package will not be uploaded if the rebuilt package matches the name of a preexisting package in the local krack-build cache. You will need to delete that preexisting package for krack-build to upload the rebuilt package.
 
 krackctl *cancel-all-requests*
 	Deletes any 'krack-request-build' files in all package directories, cancelling any requested guaranteed package builds.
