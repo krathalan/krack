@@ -58,8 +58,7 @@ krackctl *create-chroot*
 
 # BUGS
 
-Please file requests, suggestions, and report any bugs at: https://todo.sr.ht/~krathalan/krack++
-Alternatively, you may send them via email to: ~krathalan/krack@todo.sr.ht
+Please file requests, suggestions, and report any bugs at: https://github.com/krathalan/krack/issues
 
 # LICENSES
 

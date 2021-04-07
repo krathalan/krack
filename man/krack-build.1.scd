@@ -10,6 +10,8 @@ krack-build [_--flags_]...
 
 # DESCRIPTION
 
+krack-build will read configuration options from /etc/krack/build.conf. The default build.conf included with the krack package has comments in the file explaining each configuration option.
+
 # FLAGS
 
 *--start-asleep*
@@ -21,8 +23,7 @@ krack-build [_--flags_]...
 
 # BUGS
 
-Please file requests, suggestions, and report any bugs at: https://todo.sr.ht/~krathalan/krack++
-Alternatively, you may send them via email to: ~krathalan/krack@todo.sr.ht
+Please file requests, suggestions, and report any bugs at: https://github.com/krathalan/krack/issues
 
 # LICENSES
 
