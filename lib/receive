@@ -75,7 +75,6 @@ add_packages()
       continue
     fi
     mv "${package}" "${package}.sig" .
-    chown root:root "${package##${DROPBOX_PATH}/}" "${package##${DROPBOX_PATH}/}.sig"
     repo-add -R -n "${REPO_DB_FILE}" "${package##${DROPBOX_PATH}/}"
   done
   )
