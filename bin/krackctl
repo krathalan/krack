@@ -200,7 +200,8 @@ review_diffs()
     "${krack_pager}" "${diff_file}"
   done
 
-  printf "Done. Clear diffs? "
+  clear
+  printf "Finished reviewing. Delete all diffs? "
   read -r -p "[y/N] " response
 
   case "${response}" in

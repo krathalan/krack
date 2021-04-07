@@ -19,6 +19,12 @@ Krackctl gives you insight into the running krack-build instance and gives you s
 krackctl *failed-builds*
 	Lists all of the failed build logs. You can use your favorite pager to view these logs.
 
+krackctl *list-diffs*
+	Lists all of the diffs from *git pull*s in package directories, during the build cycle.
+
+krackctl *review-diffs*
+	Review each diff file with *bat* if installed, otherwise use $PAGER or fall back to *less*. Then asks the user if they want to delete all diff files.
+
 krackctl *pending-builds*
 	Lists the number of packages with a 'krack-request-build' file in their package directory. In other words, the list of packages that are guaranteed to be built the next time krack-build checks their up-to-date status.
 
