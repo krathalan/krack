@@ -50,7 +50,7 @@ Krackctl can be used on the builder PC as the builder user to control the runnin
 
 Set up a pacman repository at the desired directory on your receiver PC. You can then host this directory with web server software like Nginx or Apache. The instructions for both of these steps are outside the scope of this man page.
 
-After that, you will need to create a user with the username "krack-receive" specifically for receiving packages. Ensure that you can ssh into this user, preferably via keys. Create a directory "package-dropbox" in this user's home directory to act as a dropbox where packages will be rsync'ed to from the building PC. *You must name the user "krack-receive" or the systemd unit sandboxing will render the unit broken. You must name the dropbox directory "package-dropbox" or krack-receive will not work at all.*
+After that, you will need to create a user with the username "krack-receive" specifically for receiving packages. Ensure that you can ssh into this user, preferably via keys. Create a directory "package-dropbox" in this user's home directory to act as a dropbox where packages will be rsync'ed to from the building PC. *You must name the user "krack-receive" or the systemd unit sandboxing will render the unit broken. You must name the dropbox directory "package-dropbox" or krack-receive will not work at all. You must ensure the pacman repository directory and all files within are owned by the krack-receive user/group.*
 
 Edit /etc/krack/receive.conf with your specific paths:
 
