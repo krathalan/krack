@@ -37,7 +37,8 @@ source /usr/lib/krack/common
 source /etc/krack/build.conf
 
 # Used for logging to track failed builds
-readonly TMP_DIR="$(mktemp -d -t "krack-build_XXXXXXXX")"
+TMP_DIR="$(mktemp -d -t "krack-build_XXXXXXXX")"
+readonly TMP_DIR
 readonly TMP_LOG="${TMP_DIR}/tmp.log"
 
 # -----------------------------------------
@@ -198,7 +199,7 @@ state_helper()
 substate()
 {
   case "$1" in
-    making) substate_helper "making ${current_package} package (started at $(date +%r))"
+    making) substate_helper "making ${current_package} package"
             date +%s > "${STATUS_DATE_MAKE_START_FILE}"
             ;;
     preparing) substate_helper "preparing for build" ;;
@@ -269,7 +270,7 @@ while true; do
 
         if [[ -f "${PWD}/krack-prepull.sh" ]]; then
           print_info "Executing krack-prepull.sh"
-          # shellcheck disable=SC1090
+          # shellcheck disable=SC1091
           source "${PWD}/krack-prepull.sh"
         fi
 
@@ -295,7 +296,7 @@ while true; do
 
         if [[ -f "${PWD}/krack-postpull.sh" ]]; then
           print_info "Executing krack-postpull.sh"
-          # shellcheck disable=SC1090
+          # shellcheck disable=SC1091
           source "${PWD}/krack-postpull.sh"
         fi
 
@@ -327,6 +328,11 @@ while true; do
         # (if makechrootpkg command fails we will make this log permanent and assign a unique build fail ID to it)
         printf "" > "${TMP_LOG}"
 
+        # Record start time for storing and reporting elapsed build time
+        # We can copy it from $STATUS_DATE_BUILD_START_FILE because it is set
+        # when "substate making" is called a few lines above this
+        build_start_time="$(<"${STATUS_DATE_BUILD_START_FILE}")"
+
         # Disable some safety stuff here to provide nice output and continue building other packages if one build fails
         set +Eeo pipefail
 
@@ -342,12 +348,19 @@ while true; do
         # Re-enforce safe exiting
         set -Eeo pipefail
 
+        build_stop_time="$(date +%s)"
+
         # If the build failed...
         if [[ "${build_outcome}" != 0 ]]; then
           log_file_name="${current_package}-$(date "+%Y%m%d-%H%M%S").log"
           cp "${TMP_LOG}" "${FAILED_BUILDS_LOG_DIR}/${log_file_name}"
 
           important "Build for ${current_package} failed at $(date). Build output saved to ${log_file_name}"
+
+          if [[ "${directory}" != *"git"* ]]; then
+            important "Requesting rebuild during next build cycle for ${current_package}"
+            krackctl request-build "${current_package}"
+          fi
 
           [[ -f "${PWD}/krack-postbuild.sh" ]] && \
             print_info "Skipping postbuild script due to build failure"
@@ -356,9 +369,15 @@ while true; do
           continue
         fi
 
+        # Otherwise, if build succeeded, continue with following commands
+
+        # Store elapsed build time
+        elapsed_build_time=$(( build_stop_time - build_start_time ))
+        printf "%s" "$(date -d@${elapsed_build_time} -u +%Hh:%Mm:%Ss)" > "${directory}/.krack-last-build-time"
+
         if [[ -f "${PWD}/krack-postbuild.sh" ]]; then
           print_info "Executing krack-postbuild.sh"
-          # shellcheck disable=SC1090
+          # shellcheck disable=SC1091
           source "${PWD}/krack-postbuild.sh"
         fi
 

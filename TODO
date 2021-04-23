@@ -1,1 +1,5 @@
+Todo:
+Save last build time of package and report it when building a new package.
+
+Done:
 Add a feature that saves each output of makechrootpkg to a temporary log file. If the build fails, move the temp log to a permanent directory and give it a unique build fail ID for reference in important messages and journalctl -p err messages.

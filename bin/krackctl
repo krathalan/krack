@@ -227,15 +227,18 @@ status()
     start_time_unix="$(<"${STATUS_DATE_BUILD_START_FILE}")"
     time_now_unix="$(date +%s)"
     date_diff="$(( time_now_unix - start_time_unix ))"
-    printf ", running for %s" "$(date -d@${date_diff} -u +%H:%M:%S)"
+    printf ", running for %s" "$(date -d@${date_diff} -u +%Hh:%Mm:%Ss)"
 
     printf "\n%sSubstate:%s %s" "${CYAN}" "${NC}" "$(<"${STATUS_SUBSTATE_FILE}")"
     
     if grep -q making "${STATUS_SUBSTATE_FILE}"; then
-      # Calculate how long state has been "making"
+      # Calculate how long state has been "making" and report last build time
+      current_package="$(cut -d' ' -f2 "${STATUS_SUBSTATE_FILE}")"
+      last_build_time="$(<"${MASTER_BUILD_DIR}/${current_package}/.krack-last-build-time")"
+
       start_time_unix="$(<"${STATUS_DATE_MAKE_START_FILE}")"
       date_diff="$(( time_now_unix - start_time_unix ))"
-      printf ", running for %s" "$(date -d@${date_diff} -u +%H:%M:%S)"
+      printf ", running for %s (last build took %s)" "$(date -d@${date_diff} -u +%Hh:%Mm:%Ss)" "$(date -d@"${last_build_time}" -u +%Hh:%Mm:%Ss)"
     fi
   fi
 
