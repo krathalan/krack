@@ -233,17 +233,17 @@ status()
     
     if grep -q making "${STATUS_SUBSTATE_FILE}"; then
       # Calculate how long state has been "making" and report last build time
-      current_package="$(cut -d' ' -f2 "${STATUS_SUBSTATE_FILE}")"
-
-      if [[ -f "${MASTER_BUILD_DIR}/${current_package}/.krack-last-build-time" ]]; then
-        last_build_time="took $(<"${MASTER_BUILD_DIR}/${current_package}/.krack-last-build-time")"
-      else
-        last_build_time="time unknown"
-      fi
-
       start_time_unix="$(<"${STATUS_DATE_MAKE_START_FILE}")"
       date_diff="$(( time_now_unix - start_time_unix ))"
-      printf ", running for %s (last build %s)" "$(date -d@${date_diff} -u +%Hh:%Mm:%Ss)" "$(date -d@"${last_build_time}" -u +%Hh:%Mm:%Ss)"
+
+      current_package="$(cut -d' ' -f2 "${STATUS_SUBSTATE_FILE}")"
+      if [[ -f "${MASTER_BUILD_DIR}/${current_package}/.krack-last-build-time" ]]; then
+        last_build_time="took $(<"${MASTER_BUILD_DIR}/${current_package}/.krack-last-build-time")"
+        printf ", running for %s (last build %s)" "$(date -d@${date_diff} -u +%Hh:%Mm:%Ss)" "$(date -d@"${last_build_time}" -u +%Hh:%Mm:%Ss)"
+      else
+        last_build_time="time unknown"
+        printf ", running for %s (last build %s)" "$(date -d@${date_diff} -u +%Hh:%Mm:%Ss)" "${last_build_time}"
+      fi
     fi
   fi
 
