@@ -113,7 +113,7 @@ Each time krack-build builds a package, it saves the full output of the makechro
 
 You can use your favorite pager to view these files.
 
-You can view the raw log files in ~/.local/share/krack/logs. They contain the entire output of the krack-build instance they were generated from, including all makechrootpkg output.
+You can view the log files in ~/.local/share/krack/logs. They contain the entire output of the krack-build instance they were generated from, including all makechrootpkg output. They are compressed with brotli after krack-build exits, so you can view them with *brotli -d -c \${logfile} | \${PAGER}*.
 
 You can use journalctl to view and parse messages krack-build has sent to the system journal. Run *journalctl -t krack-build* to view all the log entries. Krack-build will only output info and error messages to the journal; no other output (such as from makechrootpkg) will be output here. You can run *journalctl -t krack-build -p err* to view all entries classified as an error; this will list all of the failed package builds. You can combine any of these options and more with the *-f* option for journalctl to tail the log. See *man journalctl* for more options.
 
@@ -126,12 +126,12 @@ Krack-receive runs as a systemd service, so you can use any valid journalctl com
 Krack-build supports custom build hooks. The build process for any package happens in the following steps:
 
 . cd into package directory
-. source krack-prepull.sh, if it exists
+. \* source krack-prepull.sh, if it exists
 . git checkout PKGBUILD, in case the last build of the package changed it in any way
 . git pull
-. source krack-postpull.sh, if it exists
+. \* source krack-postpull.sh, if it exists
 . makechrootpkg
-. source krack-postbuild.sh, if it exists
+. \* source krack-postbuild.sh, if it exists
 
 You can put any valid Bash in all krack\*.sh scripts, and they will be sourced by krack-build at the indicated step in the build process. These scripts can be used for many things like patching PKGBUILDs or other source files. *But be careful!* Since krack-build is *sourcing* your scripts, if you cd anywhere, krack-build will too. And if you patch files other than the PKGBUILD, make sure to *git checkout* them out again in krack-prepull.sh if you want to avoid build failures when attempting to merge incompatible files during *git pull* in the build process. (However, this is not always desirable -- you may wish to be notified of incompatible files this way if you want to update your patche(s) to accomodate new changes, if these files are not updated frequently enough to be a nuisance.)
 
