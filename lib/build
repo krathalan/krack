@@ -292,9 +292,7 @@ build_package()
   printf "" > "${TMP_LOG}"
 
   # Record start time for storing and reporting elapsed build time
-  # We can copy it from $STATUS_DATE_BUILD_START_FILE because it is set
-  # when "substate making" is called a few lines above this
-  local -r build_start_time="$(<"${STATUS_DATE_BUILD_START_FILE}")"
+  local -r build_start_time="$(date +%s)"
 
   # Disable some safety stuff here to provide nice output and continue building other packages if one build fails
   set +Eeo pipefail
