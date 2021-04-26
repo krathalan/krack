@@ -212,6 +212,160 @@ substate_helper()
   printf "%s" "$1" > "${STATUS_SUBSTATE_FILE}"
 }
 
+#######################################
+# Performs the build cycle as documented in the krack man page.
+# Globals:
+#   lots?
+# Arguments:
+#   $1: package directory 
+# Returns:
+#   none
+#######################################
+build_package()
+{
+  local -r directory="$1"
+  local -r current_package="${directory##*/}"
+
+  cd "${directory}" || exit_script_on_failure "Failed to \`cd\` into ${directory}"
+
+  substate "preparing"
+
+  if [[ -f "${PWD}/krack-prepull.sh" ]]; then
+    print_info "Executing krack-prepull.sh"
+    # shellcheck disable=SC1091
+    source "${PWD}/krack-prepull.sh"
+  fi
+
+  # Get current git commit hash
+  local -r old_commit_hash="$(git rev-parse HEAD)"
+
+  # Check out a fresh pkgbuild; pull any diffs
+  git checkout PKGBUILD &> /dev/null
+
+  # git pull can fail for a multitude of reasons, and we 
+  # should prepare to handle it gracefully
+  set +Ee
+
+  local git_output
+  git_output="$(git pull)"
+  local -r git_pull_return_code="$?"
+
+  set -Ee
+
+  if [[ "${git_pull_return_code}" != 0 ]]; then
+    important "Git pull in package directory failed before building ${current_package}. Cancelling build"
+    return
+  fi
+
+  if [[ -f "${PWD}/krack-postpull.sh" ]]; then
+    print_info "Executing krack-postpull.sh"
+    # shellcheck disable=SC1091
+    source "${PWD}/krack-postpull.sh"
+  fi
+
+  if [[ -f "${PWD}/krack-request-build" ]]; then
+    rm -f "${PWD}/krack-request-build"
+    print_info "Build was requested manually; proceeding with build"
+  elif [[ "${git_output}" == *"Already up to date."* ]] && [[ "${directory}" != *"git"* ]]; then
+    print_info "No need to build ${current_package}, it is already up-to-date and is not a -git package; skipping"
+    return
+  fi
+
+  if [[ "${directory}" == *"git"* ]]; then
+    print_info "${current_package} is a -git package; forcing update"
+  fi
+
+  # Build is approved, get new git commit hash only if git pulled in something
+  if [[ "${git_output}" != *"Already up to date."* ]]; then
+    new_commit_hash="$(git rev-parse HEAD)"
+    # ...and store diff to diff dir
+    diff_file_name="${current_package}-$(date "+%Y%m%d-%H%M%S").diff"
+    git diff "${old_commit_hash}".."${new_commit_hash}" &> "${GIT_DIFF_DIR}/${diff_file_name}"
+    print_info "Stored diff of pull as ${GIT_DIFF_DIR}/${diff_file_name}"
+  fi
+
+  substate "making"
+  print_info "Building package ${current_package}"
+
+  # Empty temporary log file for makechrootpkg output
+  # (if makechrootpkg command fails we will make this log permanent and assign a unique build fail ID to it)
+  printf "" > "${TMP_LOG}"
+
+  # Record start time for storing and reporting elapsed build time
+  # We can copy it from $STATUS_DATE_BUILD_START_FILE because it is set
+  # when "substate making" is called a few lines above this
+  local -r build_start_time="$(<"${STATUS_DATE_BUILD_START_FILE}")"
+
+  # Disable some safety stuff here to provide nice output and continue building other packages if one build fails
+  set +Eeo pipefail
+
+  # -c: Clean the chroot before building
+  # -d: Bind directory into build chroot as read-write
+  # -r: The chroot dir to use
+  # Arguments passed to makechrootpkg after the
+  # end-of-options marker (--) will be passed to makepkg.
+  makechrootpkg -c -d "${CCACHE_DIR}"/:/ccache -r "${MAKECHROOTPKG_DIR}" -- CCACHE_DIR=/ccache 2>&1 | tee -a "${TMP_LOG}"
+
+  local -r build_outcome=${PIPESTATUS[0]}
+
+  # Re-enforce safe exiting
+  set -Eeo pipefail
+
+  local -r build_stop_time="$(date +%s)"
+
+  # If the build failed...
+  if [[ "${build_outcome}" != 0 ]]; then
+    local -r log_file_name="${current_package}-$(date "+%Y%m%d-%H%M%S").log"
+    cp "${TMP_LOG}" "${FAILED_BUILDS_LOG_DIR}/${log_file_name}"
+
+    important "Build for ${current_package} failed at $(date). Build output saved to ${log_file_name}"
+
+    if [[ "${directory}" != *"git"* ]]; then
+      important "Requesting rebuild during next build cycle for ${current_package}"
+      krackctl request-build "${current_package}"
+    fi
+
+    [[ -f "${PWD}/krack-postbuild.sh" ]] && \
+      print_info "Skipping postbuild script due to build failure"
+
+    print_info "Continuing to the next build"
+    return
+  fi
+
+  # Otherwise, if build succeeded, continue with following commands
+
+  # Store elapsed build time
+  local -r elapsed_build_time=$(( build_stop_time - build_start_time ))
+  printf "%s" "$(date -d@${elapsed_build_time} -u +%Hh:%Mm:%Ss)" > "${directory}/.krack-last-build-time"
+
+  if [[ -f "${PWD}/krack-postbuild.sh" ]]; then
+    print_info "Executing krack-postbuild.sh"
+    # shellcheck disable=SC1091
+    source "${PWD}/krack-postbuild.sh"
+  fi
+
+  for package_tarball in "${PWD}"/*.pkg.tar.zst; do
+    if [[ -f "${PKG_CACHE_DIR}/${package_tarball##*/}" ]]; then
+      print_info "Package ${current_package} with the same version is already in the krack pkgcache; the cat is mildly annoyed 😾"
+      continue
+    fi
+
+    print_info "Copying package to local krack-build pkgcache"
+    # Remove old packages first
+    rm -f "${PKG_CACHE_DIR}/${current_package}"*
+    cp "${package_tarball}" "${PKG_CACHE_DIR}"
+
+    print_info "Signing package and uploading to ${DROPBOX_PATH}"
+    gpg --default-key "${SIGNING_KEY}" --output "${package_tarball}.sig" --detach-sig "${package_tarball}"
+
+    # Sleep for 2 seconds; sometimes the rsync command starts before the sig file has appeared on slower devices
+    sleep 2
+    rsync -a --progress "${package_tarball}" "${package_tarball}.sig" "${DROPBOX_PATH}:/home/krack-receive/package-dropbox"
+
+    print_info "Package ${current_package} built and uploaded successfully; please give your cat a treat 😻"
+  done
+}
+
 # -----------------------------------------
 # ---------------- Script -----------------
 # -----------------------------------------
@@ -261,146 +415,9 @@ while true; do
     print_info "Upgrading build chroot before building"
     arch-nspawn "${MAKECHROOTPKG_DIR}/root" pacman -Syu --noconfirm
 
-    for directory in "${MASTER_BUILD_DIR:-}"/*; do
-      if [[ -d "${directory}" ]]; then
-        cd "${directory}" || exit_script_on_failure "Failed to \`cd\` into ${directory}"
-        current_package="${directory##*/}"
-
-        substate "preparing"
-
-        if [[ -f "${PWD}/krack-prepull.sh" ]]; then
-          print_info "Executing krack-prepull.sh"
-          # shellcheck disable=SC1091
-          source "${PWD}/krack-prepull.sh"
-        fi
-
-        # Get current git commit hash
-        old_commit_hash="$(git rev-parse HEAD)"
-
-        # Check out a fresh pkgbuild; pull any diffs
-        git checkout PKGBUILD &> /dev/null
-
-        # git pull can fail for a multitude of reasons, and we 
-        # should prepare to handle it gracefully
-        set +Ee
-
-        git_output="$(git pull)"
-        git_pull_return_code="$?"
-
-        set -Ee
-
-        if [[ "${git_pull_return_code}" != 0 ]]; then
-          important "Git pull in package directory failed before building ${current_package}. Cancelling build"
-          continue
-        fi
-
-        if [[ -f "${PWD}/krack-postpull.sh" ]]; then
-          print_info "Executing krack-postpull.sh"
-          # shellcheck disable=SC1091
-          source "${PWD}/krack-postpull.sh"
-        fi
-
-        if [[ -f "${PWD}/krack-request-build" ]]; then
-          rm -f "${PWD}/krack-request-build"
-          print_info "Build was requested manually; proceeding with build"
-        elif [[ "${git_output}" == *"Already up to date."* ]] && [[ "${directory}" != *"git"* ]]; then
-          print_info "No need to build ${current_package}, it is already up-to-date and is not a -git package; skipping"
-          continue
-        fi
-
-        if [[ "${directory}" == *"git"* ]]; then
-          print_info "${current_package} is a -git package; forcing update"
-        fi
-
-        # Build is approved, get new git commit hash only if git pulled in something
-        if [[ "${git_output}" != *"Already up to date."* ]]; then
-          new_commit_hash="$(git rev-parse HEAD)"
-          # ...and store diff to diff dir
-          diff_file_name="${current_package}-$(date "+%Y%m%d-%H%M%S").diff"
-          git diff "${old_commit_hash}".."${new_commit_hash}" &> "${GIT_DIFF_DIR}/${diff_file_name}"
-          print_info "Stored diff of pull as ${GIT_DIFF_DIR}/${diff_file_name}"
-        fi
-
-        substate "making"
-        print_info "Building package ${current_package}"
-
-        # Empty temporary log file for makechrootpkg output
-        # (if makechrootpkg command fails we will make this log permanent and assign a unique build fail ID to it)
-        printf "" > "${TMP_LOG}"
-
-        # Record start time for storing and reporting elapsed build time
-        # We can copy it from $STATUS_DATE_BUILD_START_FILE because it is set
-        # when "substate making" is called a few lines above this
-        build_start_time="$(<"${STATUS_DATE_BUILD_START_FILE}")"
-
-        # Disable some safety stuff here to provide nice output and continue building other packages if one build fails
-        set +Eeo pipefail
-
-        # -c: Clean the chroot before building
-        # -d: Bind directory into build chroot as read-write
-        # -r: The chroot dir to use
-        # Arguments passed to makechrootpkg after the
-        # end-of-options marker (--) will be passed to makepkg.
-        makechrootpkg -c -d "${CCACHE_DIR}"/:/ccache -r "${MAKECHROOTPKG_DIR}" -- CCACHE_DIR=/ccache 2>&1 | tee -a "${TMP_LOG}"
-
-        build_outcome=${PIPESTATUS[0]}
-
-        # Re-enforce safe exiting
-        set -Eeo pipefail
-
-        build_stop_time="$(date +%s)"
-
-        # If the build failed...
-        if [[ "${build_outcome}" != 0 ]]; then
-          log_file_name="${current_package}-$(date "+%Y%m%d-%H%M%S").log"
-          cp "${TMP_LOG}" "${FAILED_BUILDS_LOG_DIR}/${log_file_name}"
-
-          important "Build for ${current_package} failed at $(date). Build output saved to ${log_file_name}"
-
-          if [[ "${directory}" != *"git"* ]]; then
-            important "Requesting rebuild during next build cycle for ${current_package}"
-            krackctl request-build "${current_package}"
-          fi
-
-          [[ -f "${PWD}/krack-postbuild.sh" ]] && \
-            print_info "Skipping postbuild script due to build failure"
-
-          print_info "Continuing to the next build"
-          continue
-        fi
-
-        # Otherwise, if build succeeded, continue with following commands
-
-        # Store elapsed build time
-        elapsed_build_time=$(( build_stop_time - build_start_time ))
-        printf "%s" "$(date -d@${elapsed_build_time} -u +%Hh:%Mm:%Ss)" > "${directory}/.krack-last-build-time"
-
-        if [[ -f "${PWD}/krack-postbuild.sh" ]]; then
-          print_info "Executing krack-postbuild.sh"
-          # shellcheck disable=SC1091
-          source "${PWD}/krack-postbuild.sh"
-        fi
-
-        for package_tarball in "${PWD}"/*.pkg.tar.zst; do
-          if [[ -f "${PKG_CACHE_DIR}/${package_tarball##*/}" ]]; then
-            print_info "Package ${current_package} with the same version is already in the krack pkgcache; the cat is mildly annoyed 😾"
-            continue
-          fi
-
-          print_info "Copying package to local krack-build pkgcache"
-          # Remove old packages first
-          rm -f "${PKG_CACHE_DIR}/${current_package}"*
-          cp "${package_tarball}" "${PKG_CACHE_DIR}"
-
-          print_info "Signing package and uploading to ${DROPBOX_PATH}"
-          gpg --default-key "${SIGNING_KEY}" --output "${package_tarball}.sig" --detach-sig "${package_tarball}"
-
-          # Sleep for 2 seconds; sometimes the rsync command starts before the sig file has appeared on slower devices
-          sleep 2
-          rsync -a --progress "${package_tarball}" "${package_tarball}.sig" "${DROPBOX_PATH}:/home/krack-receive/package-dropbox"
-
-          print_info "Package ${current_package} built and uploaded successfully; please give your cat a treat 😻"
-        done
+    for pkgdir in "${MASTER_BUILD_DIR:-}"/*; do
+      if [[ -d "${pkgdir}" ]]; then
+        build_package "${pkgdir}"
       fi
     done
 
