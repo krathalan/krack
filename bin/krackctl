@@ -266,6 +266,28 @@ status()
   printf "%sLatest log entries:%s\n%s\n" "${CYAN}" "${NC}" "$(tail -n${log_lines_to_watch} "$(<"${STATUS_CURRENT_LOG_FILE}")" | cut -c 1-"${terminal_width}")"
 }
 
+version()
+{
+  printf "%s" "\
+krack v${VERSION}
+
+Copyright (C) 2020-2021 Hunter Peavey
+
+    Krack is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Krack is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Krack.  If not, see <https://www.gnu.org/licenses/>.
+"
+}
+
 watch_status()
 {
   local -r tmpdir="$(mktemp -d -t "${SCRIPT_NAME}_XXXXXXXX")"
@@ -334,6 +356,7 @@ case "$1" in
   pending-builds) pending_builds ;;
   cancel-all-requests) cancel_all_requests ;;
   status) status "$@" ;;
-  watch-status) watch_status;;
+  watch-status) watch_status ;;
+  version) version ;;
   *) print_help ;;
 esac
