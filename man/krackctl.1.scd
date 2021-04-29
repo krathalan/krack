@@ -1,4 +1,4 @@
-krackctl(1) ["Version 0.3.0"]
+krackctl(1) ["Version 0.4.0"]
 
 # NAME
 
