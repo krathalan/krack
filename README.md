@@ -9,7 +9,7 @@
 
 The specific use case is having a spare PC at home that has enough power to compile some programs. You can set up krack to build and upload your desired packages on this PC, and then receive them at a remote PC of your choosing that hosts a pacman repository. Then all your Arch devices can pull in package updates from that remote PC, without having to build them manually on any device.
 
-All of the documentation comes in the form of man pages. You should read them in this order (click to read on Github):
+All of the **documentation** comes in the form of man pages. You should read them in this order (click to read on Github):
 
 - [`man krack`](man/krack.1.scd)
 - [`man krackctl`](man/krackctl.1.scd)
@@ -33,5 +33,5 @@ All of the documentation comes in the form of man pages. You should read them in
 ## Installation
 Install `krack` from the AUR: https://aur.archlinux.org/packages/krack/
 
-## More info
-See `man krack`.
+## Contributing
+See [`CONTRIBUTING.md`](CONTRIBUTING.md).

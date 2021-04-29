@@ -16,7 +16,7 @@ printf "%s" "${CURRENT_LOG_FILE}" > "${STATUS_CURRENT_LOG_FILE}"
 touch "${CURRENT_LOG_FILE}"
 
 # Unset safety options so we always compress log file after
-# build quits, even if it fails
+# build quits, even if /usr/lib/krack/build fails
 set +Eeuo pipefail
 bash /usr/lib/krack/build "$@" | tee -a "${CURRENT_LOG_FILE}"
 brotli -j -q 5 "${CURRENT_LOG_FILE}"
