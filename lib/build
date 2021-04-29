@@ -277,9 +277,9 @@ build_package()
 
   # Build is approved, get new git commit hash only if git pulled in something
   if [[ "${git_output}" != *"Already up to date."* ]]; then
-    new_commit_hash="$(git rev-parse HEAD)"
+    local -r new_commit_hash="$(git rev-parse HEAD)"
     # ...and store diff to diff dir
-    diff_file_name="${current_package}-$(date "+%Y%m%d-%H%M%S").diff"
+    local -r diff_file_name="${current_package}-$(date "+%Y%m%d-%H%M%S").diff"
     git diff "${old_commit_hash}".."${new_commit_hash}" &> "${GIT_DIFF_DIR}/${diff_file_name}"
     print_info "Stored diff of pull as ${GIT_DIFF_DIR}/${diff_file_name}"
   fi
