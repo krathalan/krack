@@ -1,4 +1,4 @@
-krack-receive(1) ["Version 0.4.0"]
+krack-receive(1) ["Version 0.4.1"]
 
 # NAME
 
