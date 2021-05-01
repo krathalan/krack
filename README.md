@@ -1,6 +1,6 @@
 # krack
 
-![Image of a running krack-build instance](https://krathalan.net/krack.webp)
+![Image of a running krack-build instance](https://krathalan.net/krack1.webp)
 
 **Kra**thalan's p**ack**aging softwares. A set of programs for:
 
