@@ -113,7 +113,7 @@ Each time krack-build builds a package, it saves the full output of the makechro
 
 You can use your favorite pager to view these files.
 
-You can view the log files in ~/.local/share/krack/logs. They contain the entire output of the krack-build instance they were generated from, including all makechrootpkg output. They are compressed with brotli after krack-build exits, so you can view them with *brotli -d -c \${logfile} | \${PAGER}*.
+You can view the full log files in ~/.local/share/krack/logs. They contain the entire output of the krack-build instance they were generated from, including all makechrootpkg output.
 
 You can use journalctl to view and parse messages krack-build has sent to the system journal. Run *journalctl -t krack-build* to view all the log entries. Krack-build will only output info and error messages to the journal; no other output (such as from makechrootpkg) will be output here. You can run *journalctl -t krack-build -p err* to view all entries classified as an error; this will list all of the failed package builds. You can combine any of these options and more with the *-f* option for journalctl to tail the log. See *man journalctl* for more options.
 
