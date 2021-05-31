@@ -1,4 +1,4 @@
-krack(1) ["Version 0.4.1"]
+krack(1) ["Version 0.4.2"]
 
 # NAME
 
