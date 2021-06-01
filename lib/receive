@@ -27,6 +27,7 @@ set -Eeuo pipefail
 # shellcheck disable=SC1091
 source /etc/krack/receive.conf
 
+# Directory to watch for new packages
 readonly DROPBOX_PATH="/home/krack-receive/package-dropbox"
 
 # -----------------------------------------
@@ -66,6 +67,7 @@ add_packages()
   cd "${REPO_ROOT}" || exit_script_on_failure "Failure to \`cd\` into ${REPO_ROOT}"
 
   for package in "${DROPBOX_PATH}"/*.pkg.tar.zst; do
+    # Check for preexisting package with same version
     if [[ -f "${PWD}/${package##*/}" ]]; then
       print_info "Package with that version already exists. Removing package and signature from ${DROPBOX_PATH}..."
 
@@ -74,6 +76,8 @@ add_packages()
       rm -f "${package}" "${package}.sig"
       continue
     fi
+
+    # Package is valid, add to repo!
     mv "${package}" "${package}.sig" .
     repo-add -R -n "${REPO_DB_FILE}" "${package##${DROPBOX_PATH}/}"
   done
