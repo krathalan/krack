@@ -102,7 +102,7 @@ pending_builds()
 {
   local list_of_pending_builds
   local to_print
-  mapfile -t list_of_pending_builds <<< "$(find "${MASTER_BUILD_DIR}" -name "krack-request-build")"
+  mapfile -t list_of_pending_builds <<< "$(find -L "${MASTER_BUILD_DIR}" -name "krack-request-build")"
 
   printf "List of pending package build requests:\n---------------------------------------\n"
 
