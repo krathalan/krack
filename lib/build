@@ -82,7 +82,7 @@ check_awaken_request()
 clean_pkgbuild_dirs()
 {
   local toClean
-  mapfile -t toClean <<< "$(find -L "${MASTER_BUILD_DIR}" -type f \( -name "*.gz" -o -name "*.xz" -o -name "*.zst" -o -name "*.lz4" -o -name "*.log" -o -name "*.sig" \))"
+  mapfile -t toClean <<< "$(find -L "${MASTER_BUILD_DIR}" -type f \( -name "*.gz" -o -name "*.xz" -o -name "*.zst" -o -name "*.lz4" -o -name "*.log" -o -name "*.sig" -o -name "*.asc" \))"
 
   for file in "${toClean[@]}"; do
     rm -f "${file}"
@@ -252,6 +252,9 @@ build_package()
 
   # If the build failed...
   if [[ "${build_outcome}" != 0 ]]; then
+    # Delete old failed build logs for this package
+    rm -f "${FAILED_BUILDS_LOG_DIR}/${current_package}"*
+
     # Save tmp log to failed build logs dir
     local -r log_file_name="${current_package}-$(date "+%Y%m%d-%H%M%S").log"
     cp "${TMP_LOG}" "${FAILED_BUILDS_LOG_DIR}/${log_file_name}"

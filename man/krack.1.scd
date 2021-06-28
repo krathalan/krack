@@ -131,7 +131,7 @@ You can run *krackctl status* on the builder PC to get a good overview of your c
 
 If krack-build pulls in new commits during the "git pull" part of the build process, it will save the output of the diff between the new commit and the old commit to a file. Diffs can be listed with the command *krackctl list-diffs*.
 
-Each time krack-build builds a package, it saves the full output of the makechrootpkg command for that package build to a temporary log file. If the makechrootpkg command fails, the temporary file is made permanent at ~/.local/share/krack/logs/failed-builds. Failed build logs can be listed with the command *krackctl failed-builds*.
+Each time krack-build builds a package, it saves the full output of the makechrootpkg command for that package build to a temporary log file. If the makechrootpkg command fails, the temporary file is made permanent at ~/.local/share/krack/logs/failed-builds. Failed build logs can be listed with the command *krackctl failed-builds*. Only the latest failed build log is saved for a given package, so if you leave krack unattended for a few build cycles and a package fails to build a few times you won't be overwhelmed with multiple failure logs.
 
 You can use your favorite pager to view these files.
 
