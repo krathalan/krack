@@ -418,7 +418,6 @@ fi
 SKIP_COMPLETE="false"
 
 while true; do
-  state "building"
   print_info "Good morning honey, it is $(date) and it's time to build packages again"
   print_info "Flushing important messages log"
   printf "nothing yet :)" > "${STATUS_IMPORTANT_MESSAGE_FILE}"
@@ -435,6 +434,7 @@ while true; do
     print_info "Upgrading build chroot before building"
     arch-nspawn "${MAKECHROOTPKG_DIR}/root" pacman -Syu --noconfirm
 
+    state "building"
     # Check for empty build dir (https://unix.stackexchange.com/a/202276)
     # shellcheck disable=2010
     if ls -1qA "${MASTER_BUILD_DIR:-}" | grep -q .; then
