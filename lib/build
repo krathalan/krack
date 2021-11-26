@@ -307,6 +307,21 @@ build_package()
   done
 }
 
+write_build_data()
+{
+  # NYI
+  true
+  # Write data to json file in pkgdir
+  # any relevant build failures?
+  # average build time
+  # last build time
+  # last built version
+  # is up-to-date with AUR?
+  # number of times built, vs. number of times uploaded
+
+  # {"average-build-time": "","last-build-time": "","last-built-version": "","build-failure": "","number-of-times-built": ""}
+}
+
 # Stuff for $(krackctl status) below
 
 #######################################
