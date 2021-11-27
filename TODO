@@ -1,5 +1,7 @@
 Todo:
-Last build cycle report: during a build cycle, save status of each package to file (e.g. "up-to-date/not built, built successfully, etc") and allow user to see with `krackctl report`
+- Support packages compressed with programs other than zstd
+- More intelligently build git packages
+- Last build cycle report: during a build cycle, save status of each package to file (e.g. "up-to-date/not built, built successfully, etc") and allow user to see with `krackctl report`
 
 Done:
 Save last build time of package and report it when building a new package.
