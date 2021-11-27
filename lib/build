@@ -51,7 +51,7 @@ NEXT_WAKE=""
 # krack-build is sleeping
 # Globals:
 #   STATUS_DIR
-#   sleep_pid
+#   sleepPid
 # Arguments:
 #   none
 # Returns:
@@ -63,7 +63,7 @@ check_awaken_request()
     # Clean up request file
     rm -f "${STATUS_DIR}/krack-request-awaken"
     # Clean up our sleeping child....
-    kill "${sleep_pid}"
+    kill "${sleepPid}"
     return 0 # Awaken!
   else
     return 1 # Slumber...
@@ -155,7 +155,7 @@ print_info()
 build_package()
 {
   local -r directory="$1"
-  local -r current_package="${directory##*/}"
+  local -r currentPackage="${directory##*/}"
 
   cd "${directory}" || exit_script_on_failure "Failed to \`cd\` into ${directory}"
 
@@ -168,7 +168,7 @@ build_package()
   fi
 
   # Get current git commit hash
-  local -r old_commit_hash="$(git rev-parse HEAD)"
+  local -r oldCommitHash="$(git rev-parse HEAD)"
 
   # Check out a fresh pkgbuild
   git checkout PKGBUILD &> /dev/null
@@ -178,8 +178,8 @@ build_package()
   # should prepare to handle it gracefully
   set +Ee
 
-  local git_output
-  git_output="$(git pull)"
+  local gitOutput
+  gitOutput="$(git pull)"
   local -r git_pull_return_code="$?"
 
   set -Ee
@@ -188,11 +188,11 @@ build_package()
   # Hopefully the user will have resolved the issue by then :)
   if [[ "${git_pull_return_code}" != 0 ]]; then
     if [[ "${directory}" != *"git"* ]]; then
-      important "Requesting rebuild during next build cycle for ${current_package}"
-      krackctl request-build "${current_package}"
+      important "Requesting rebuild during next build cycle for ${currentPackage}"
+      krackctl request-build "${currentPackage}"
     fi
 
-    important "Git pull in package directory failed before building ${current_package}. Cancelling build"
+    important "Git pull in package directory failed before building ${currentPackage}. Cancelling build"
     return
   fi
 
@@ -205,33 +205,33 @@ build_package()
   if [[ -f "${PWD}/krack-request-build" ]]; then
     rm -f "${PWD}/krack-request-build"
     print_info "Build was requested manually; proceeding with build"
-  elif [[ "${git_output}" == *"Already up to date."* ]] && [[ "${directory}" != *"git"* ]]; then
-    print_info "No need to build ${current_package}, it is already up-to-date and is not a -git package; skipping"
+  elif [[ "${gitOutput}" == *"Already up to date."* ]] && [[ "${directory}" != *"git"* ]]; then
+    print_info "No need to build ${currentPackage}, it is already up-to-date and is not a -git package; skipping"
     return
   fi
 
   if [[ "${directory}" == *"git"* ]]; then
-    print_info "${current_package} is a -git package; forcing update"
+    print_info "${currentPackage} is a -git package; forcing update"
   fi
 
   # Build is approved, get new git commit hash only if git pulled in something
-  if [[ "${git_output}" != *"Already up to date."* ]]; then
-    local -r new_commit_hash="$(git rev-parse HEAD)"
+  if [[ "${gitOutput}" != *"Already up to date."* ]]; then
+    local -r newCommitHash="$(git rev-parse HEAD)"
     # ...and store diff to diff dir
-    local -r diff_file_name="${current_package}-$(date "+%Y%m%d-%H%M%S").diff"
-    git diff "${old_commit_hash}".."${new_commit_hash}" &> "${GIT_DIFF_DIR}/${diff_file_name}"
-    print_info "Stored diff of pull as ${GIT_DIFF_DIR}/${diff_file_name}"
+    local -r diffFileName="${currentPackage}-$(date "+%Y%m%d-%H%M%S").diff"
+    git diff "${oldCommitHash}".."${newCommitHash}" &> "${GIT_DIFF_DIR}/${diffFileName}"
+    print_info "Stored diff of pull as ${GIT_DIFF_DIR}/${diffFileName}"
   fi
 
   substate "making"
-  print_info "Building package ${current_package}"
+  print_info "Building package ${currentPackage}"
 
   # Empty temporary log file for makechrootpkg output
   # (if makechrootpkg command fails we will make this log permanent and assign a unique build fail ID to it)
   printf "" > "${TMP_LOG}"
 
   # Record start time for storing and reporting elapsed build time
-  local -r build_start_time="$(date +%s)"
+  local -r buildStartTime="$(date +%s)"
 
   # Disable some safety stuff here to provide nice output and continue building other packages if one build fails
   set +Eeo pipefail
@@ -243,28 +243,28 @@ build_package()
   # end-of-options marker (--) will be passed to makepkg.
   makechrootpkg -c -d "${CCACHE_DIR}"/:/ccache -r "${MAKECHROOTPKG_DIR}" -- CCACHE_DIR=/ccache 2>&1 | tee -a "${TMP_LOG}"
 
-  local -r build_outcome=${PIPESTATUS[0]}
+  local -r buildOutcome=${PIPESTATUS[0]}
 
   # Re-enforce safe exiting
   set -Eeo pipefail
 
-  local -r build_stop_time="$(date +%s)"
+  local -r buildStopTime="$(date +%s)"
 
   # If the build failed...
-  if [[ "${build_outcome}" != 0 ]]; then
+  if [[ "${buildOutcome}" != 0 ]]; then
     # Delete old failed build logs for this package
-    rm -f "${FAILED_BUILDS_LOG_DIR}/${current_package}"*
+    rm -f "${FAILED_BUILDS_LOG_DIR}/${currentPackage}"*
 
     # Save tmp log to failed build logs dir
-    local -r log_file_name="${current_package}-$(date "+%Y%m%d-%H%M%S").log"
+    local -r log_file_name="${currentPackage}-$(date "+%Y%m%d-%H%M%S").log"
     cp "${TMP_LOG}" "${FAILED_BUILDS_LOG_DIR}/${log_file_name}"
 
     if [[ "${directory}" != *"git"* ]]; then
-      important "Requesting rebuild during next build cycle for ${current_package}"
-      krackctl request-build "${current_package}"
+      important "Requesting rebuild during next build cycle for ${currentPackage}"
+      krackctl request-build "${currentPackage}"
     fi
 
-    important "Build for ${current_package} failed at $(date). Build output saved to ${log_file_name}"
+    important "Build for ${currentPackage} failed at $(date). Build output saved to ${log_file_name}"
 
     [[ -f "${PWD}/krack-postbuild.sh" ]] && \
       print_info "Skipping postbuild script due to build failure"
@@ -276,8 +276,8 @@ build_package()
   # Otherwise, if build succeeded, continue with following commands
 
   # Store elapsed build time
-  local -r elapsed_build_time=$(( build_stop_time - build_start_time ))
-  printf "%s" "$(date -d@${elapsed_build_time} -u +%Hh:%Mm:%Ss)" > "${directory}/.krack-last-build-time"
+  local -r elapsedBuildTime=$(( buildStopTime - buildStartTime ))
+  printf "%s" "$(date -d@${elapsedBuildTime} -u +%Hh:%Mm:%Ss)" > "${directory}/.krack-last-build-time"
 
   if [[ -f "${PWD}/krack-postbuild.sh" ]]; then
     print_info "Executing krack-postbuild.sh"
@@ -285,25 +285,25 @@ build_package()
     source "${PWD}/krack-postbuild.sh"
   fi
 
-  for package_tarball in "${PWD}"/*.pkg.tar.zst; do
-    if [[ -f "${PKG_CACHE_DIR}/${package_tarball##*/}" ]]; then
-      print_info "Package ${current_package} with the same version is already in the krack pkgcache; the cat is mildly annoyed 😾"
+  for packageTarball in "${PWD}"/*.pkg.tar.zst; do
+    if [[ -f "${PKG_CACHE_DIR}/${packageTarball##*/}" ]]; then
+      print_info "Package ${currentPackage} with the same version is already in the krack pkgcache; the cat is mildly annoyed 😾"
       continue
     fi
 
     print_info "Copying package to local krack-build pkgcache"
     # Remove old packages first
-    rm -f "${PKG_CACHE_DIR}/${current_package}"*
-    cp "${package_tarball}" "${PKG_CACHE_DIR}"
+    rm -f "${PKG_CACHE_DIR}/${currentPackage}"*
+    cp "${packageTarball}" "${PKG_CACHE_DIR}"
 
     print_info "Signing package and uploading to ${DROPBOX_PATH}"
-    gpg --default-key "${SIGNING_KEY}" --output "${package_tarball}.sig" --detach-sig "${package_tarball}"
+    gpg --default-key "${SIGNING_KEY}" --output "${packageTarball}.sig" --detach-sig "${packageTarball}"
 
     # Sleep for 2 seconds; sometimes the rsync command starts before the sig file has appeared on slower devices
     sleep 2
-    rsync -a --progress "${package_tarball}" "${package_tarball}.sig" "krack-receive@${DROPBOX_PATH}:/home/krack-receive/package-dropbox"
+    rsync -a --progress "${packageTarball}" "${packageTarball}.sig" "krack-receive@${DROPBOX_PATH}:/home/krack-receive/package-dropbox"
 
-    print_info "Package ${current_package} built and uploaded successfully; please give your cat a treat 😻"
+    print_info "Package ${currentPackage} built and uploaded successfully; please give your cat a treat 😻"
   done
 }
 
@@ -320,6 +320,22 @@ write_build_data()
   # number of times built, vs. number of times uploaded
 
   # {"average-build-time": "","last-build-time": "","last-built-version": "","build-failure": "","number-of-times-built": ""}
+}
+
+#######################################
+# Writes a setting value to the config file.
+# Arguments:
+#   $1: key
+#   $2: value
+#   $3: pkgname
+# Returns:
+#   none
+#######################################
+write_setting()
+{
+  local -r outputFile="${MASTER_BUILD_DIR}/$3/.krack-data.json"
+  local -r tmpJson="$(jq "$1 = \"$2\"" "${outputFile}")"
+  printf "%s" "${tmpJson}" > "${outputFile}"
 }
 
 # Stuff for $(krackctl status) below
@@ -378,7 +394,7 @@ state_helper()
 #######################################
 # Updates the substate of the running krack-build instance.
 # Globals:
-#   current_package
+#   currentPackage
 #   STATUS_DATE_BUILD_START_FILE
 # Arguments:
 #   none
@@ -388,11 +404,11 @@ state_helper()
 substate()
 {
   case "$1" in
-    making) substate_helper "making ${current_package} package"
+    making) substate_helper "making ${currentPackage} package"
             date +%s > "${STATUS_DATE_MAKE_START_FILE}"
             ;;
     preparing) substate_helper "preparing for build" ;;
-    uploading) substate_helper "uploading built ${current_package} package" ;;
+    uploading) substate_helper "uploading built ${currentPackage} package" ;;
   esac
 }
 
@@ -473,11 +489,11 @@ while true; do
 
   # https://unix.stackexchange.com/a/225183
   sleep "${SLEEP_HOURS}"h &
-  sleep_pid=$!
+  sleepPid=$!
   i=1
   sp="/-\|"
   echo -n ' '
-  while [[ -d "/proc/$sleep_pid" ]];  do
+  while [[ -d "/proc/${sleepPid}" ]];  do
     printf "\b%s" ${sp:i++%${#sp}:1}
 
     # Check to see if the user has requested krack-build to wake up
