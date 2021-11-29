@@ -285,7 +285,7 @@ build_package()
   local averageBuildTime
   averageBuildTime="$(jq -r .average_build_time "${directory}/.krack-data.json")"
 
-  if [[ "${averageBuildTime}" == "null" ]]; then  
+  if [[ "${averageBuildTime}" == "" ]]; then  
     write_setting "average_build_time" "${elapsedBuildTime}" "${currentPackage}"
   else
     averageBuildTime=$(( averageBuildTime + elapsedBuildTime ))
@@ -297,7 +297,7 @@ build_package()
   local numberOfTimesBuilt
   numberOfTimesBuilt="$(jq -r .number_of_times_built "${directory}/.krack-data.json")"
 
-  if [[ "${numberOfTimesBuilt}" == "null" ]]; then  
+  if [[ "${numberOfTimesBuilt}" == "" ]]; then  
     write_setting "number_of_times_built" "1" "${currentPackage}"
   else
     numberOfTimesBuilt=$(( numberOfTimesBuilt + 1 ))
@@ -346,7 +346,7 @@ build_package()
 make_build_data_file()
 {
   if [[ ! -f "$1/.krack-data.json" ]]; then
-    printf "{\"average-build-time\": \"\",\"last-build-time\": \"\",\"last-built-version\": \"\",\"build-failure\": \"\",\"number-of-times-built\": \"\"}" > "$1/.krack-data.json"
+    printf "{\"average_build_time\": \"\",\"last_build_time\": \"\",\"last_built_version\": \"\",\"build_failure\": \"\",\"number_of_times_built\": \"\"}" > "$1/.krack-data.json"
   fi
 }
 

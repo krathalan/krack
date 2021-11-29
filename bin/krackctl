@@ -237,13 +237,18 @@ status()
       date_diff="$(( time_now_unix - start_time_unix ))"
 
       current_package="$(cut -d' ' -f2 "${STATUS_SUBSTATE_FILE}")"
-      if [[ -f "${MASTER_BUILD_DIR}/${current_package}/.krack-last-build-time" ]]; then
-        last_build_time="took $(<"${MASTER_BUILD_DIR}/${current_package}/.krack-last-build-time")"
+      if [[ -f "${MASTER_BUILD_DIR}/${current_package}/.krack-data.json" ]]; then
+        local -r averageBuildTime="$(jq -r .average_build_time "${MASTER_BUILD_DIR}/${current_package}/.krack-data.json")"
+        if [[ "${averageBuildTime}" == "" ]]; then
+          average_build_time="time unknown"
+        else
+          average_build_time="took $(date -d@ -u +%Hh:%Mm:%Ss))"
+        fi
       else
-        last_build_time="time unknown"
+        average_build_time="time unknown"
       fi
       
-      printf ", running for %s (last build %s)" "$(date -d@${date_diff} -u +%Hh:%Mm:%Ss)" "${last_build_time}"
+      printf ", running for %s (last build %s)" "$(date -d@${date_diff} -u +%Hh:%Mm:%Ss)" "${average_build_time}"
     fi
   fi
 
