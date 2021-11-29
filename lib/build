@@ -283,16 +283,26 @@ build_package()
 
   # Get average time, re-average and re-write
   local averageBuildTime
-  averageBuildTime="$(jq -r .average_build_time <<< "${directory}/.krack-data.json")"
-  averageBuildTime=$(( averageBuildTime + elapsedBuildTime ))
-  averageBuildTime=$(( averageBuildTime / 2 ))
-  write_setting "average_build_time" "${averageBuildTime}" "${currentPackage}"
+  averageBuildTime="$(jq -r .average_build_time "${directory}/.krack-data.json")"
+
+  if [[ "${averageBuildTime}" == "null" ]]; then  
+    write_setting "average_build_time" "${elapsedBuildTime}" "${currentPackage}"
+  else
+    averageBuildTime=$(( averageBuildTime + elapsedBuildTime ))
+    averageBuildTime=$(( averageBuildTime / 2 ))
+    write_setting "average_build_time" "${averageBuildTime}" "${currentPackage}"
+  fi
 
   # Get number of times built, increment by 1 and re-write
   local numberOfTimesBuilt
-  numberOfTimesBuilt="$(jq -r .number_of_times_built <<< "${directory}/.krack-data.json")"
-  numberOfTimesBuilt=$(( numberOfTimesBuilt + 1 ))
-  write_setting "number_of_times_built" "${numberOfTimesBuilt}" "${currentPackage}"
+  numberOfTimesBuilt="$(jq -r .number_of_times_built "${directory}/.krack-data.json")"
+
+  if [[ "${numberOfTimesBuilt}" == "null" ]]; then  
+    write_setting "number_of_times_built" "1" "${currentPackage}"
+  else
+    numberOfTimesBuilt=$(( numberOfTimesBuilt + 1 ))
+    write_setting "number_of_times_built" "${numberOfTimesBuilt}" "${currentPackage}"
+  fi
 
   if [[ -f "${PWD}/krack-postbuild.sh" ]]; then
     print_info "Executing krack-postbuild.sh"
@@ -352,7 +362,7 @@ make_build_data_file()
 write_setting()
 {
   local -r outputFile="${MASTER_BUILD_DIR}/$3/.krack-data.json"
-  local -r tmpJson="$(jq "$1 = \"$2\"" "${outputFile}")"
+  local -r tmpJson="$(jq ".$1 = \"$2\"" "${outputFile}")"
   printf "%s" "${tmpJson}" > "${outputFile}"
 }
 
