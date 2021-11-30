@@ -62,10 +62,10 @@ clean_logs()
 {
   # find/printf syntax from:
   # https://stackoverflow.com/questions/4561895/how-to-recursively-find-the-latest-modified-file-in-a-directory/4561987#4561987
-  mapfile -t newest_logs <<< "$(find "${LOG_DIR}" -type f -printf '%T@ %p\n' | sort -n | tail -"$1" | cut -f2- -d" ")"
+  mapfile -t newestLogs <<< "$(find "${LOG_DIR}" -type f -printf '%T@ %p\n' | sort -n | tail -"$1" | cut -f2- -d" ")"
 
   for logfile in "${LOG_DIR}"/*; do
-    if [[ ! -d "${logfile}" ]] && [[ "${newest_logs[*]}" != *"${logfile##*/}"* ]]; then
+    if [[ ! -d "${logfile}" ]] && [[ "${newestLogs[*]}" != *"${logfile##*/}"* ]]; then
       rm -f "${logfile}"
     fi
   done
@@ -100,29 +100,29 @@ request_build()
 
 pending_builds()
 {
-  local list_of_pending_builds
-  local to_print
-  mapfile -t list_of_pending_builds <<< "$(find -L "${MASTER_BUILD_DIR}" -name "krack-request-build")"
+  local listOfPendingBuilds
+  local toPrint
+  mapfile -t listOfPendingBuilds <<< "$(find -L "${MASTER_BUILD_DIR}" -name "krack-request-build")"
 
   printf "List of pending package build requests:\n---------------------------------------\n"
 
-  for pending_build in "${list_of_pending_builds[@]}"; do
+  for pendingBuild in "${listOfPendingBuilds[@]}"; do
     # Use variable substitution to isolate name of pkg directory
-    to_print="${pending_build%/*}"
-    printf "%s\n" "${to_print##*/}"
+    toPrint="${pendingBuild%/*}"
+    printf "%s\n" "${toPrint##*/}"
   done
 }
 
 cancel_all_requests()
 {
-  local list_of_pending_builds
-  local to_print
-  mapfile -t list_of_pending_builds <<< "$(find "${MASTER_BUILD_DIR}" -name "krack-request-build")"
+  local listOfPendingBuilds
+  local toPrint
+  mapfile -t listOfPendingBuilds <<< "$(find "${MASTER_BUILD_DIR}" -name "krack-request-build")"
 
-  for pending_build in "${list_of_pending_builds[@]}"; do
-    rm -f "${pending_build}"
-    to_print="${pending_build%/*}"
-    print_info "Deleted build request for ${to_print##*/}"
+  for pendingBuild in "${listOfPendingBuilds[@]}"; do
+    rm -f "${pendingBuild}"
+    toPrint="${pendingBuild%/*}"
+    print_info "Deleted build request for ${toPrint##*/}"
   done
 }
 
@@ -135,17 +135,17 @@ failed_builds()
     exit
   fi
 
-  local step_counter=1
+  local stepCounter=1
 
   # List build and date failed
-  for failed_build in "${FAILED_BUILDS_LOG_DIR}"/*; do
+  for failedBuild in "${FAILED_BUILDS_LOG_DIR}"/*; do
     # Get file creation date of log file and make it more readable
-    local log_creation_date
-    log_creation_date="$(date -d "$(stat -c "%w" "${failed_build}")" "+%c")"
+    local logCreationDate
+    logCreationDate="$(date -d "$(stat -c "%w" "${failedBuild}")" "+%c")"
 
-    printf "%s. %s%s%s (failed at %s%s%s)\n" "${step_counter}" "${YELLOW}" "${failed_build}" "${NC}" "${BLUE}" "${log_creation_date}" "${NC}"
+    printf "%s. %s%s%s (failed at %s%s%s)\n" "${step_counter}" "${YELLOW}" "${failedBuild}" "${NC}" "${BLUE}" "${logCreationDate}" "${NC}"
 
-    step_counter=$(( step_counter + 1 ))
+    stepCounter=$(( stepCounter + 1 ))
   done
 }
 
@@ -158,16 +158,16 @@ list_diffs()
     exit
   fi
 
-  local step_counter=1
+  local stepCounter=1
 
-  for diff_file in "${GIT_DIFF_DIR}"/*; do
+  for diffFile in "${GIT_DIFF_DIR}"/*; do
     # Get file creation date of diff file and make it more readable
-    local diff_creation_date
-    diff_creation_date="$(date -d "$(stat -c "%w" "${diff_file}")" "+%c")"
+    local diffCreationDate
+    diffCreationDate="$(date -d "$(stat -c "%w" "${diffFile}")" "+%c")"
 
-    printf "%s. %s%s%s (created at %s%s%s)\n" "${step_counter}" "${YELLOW}" "${diff_file}" "${NC}" "${BLUE}" "${diff_creation_date}" "${NC}"
+    printf "%s. %s%s%s (created at %s%s%s)\n" "${stepCounter}" "${YELLOW}" "${diffFile}" "${NC}" "${BLUE}" "${diffCreationDate}" "${NC}"
 
-    step_counter=$(( step_counter + 1 ))
+    stepCounter=$(( stepCounter + 1 ))
   done
 }
 
@@ -191,13 +191,13 @@ review_diffs()
   fi
 
   if command -v bat &> /dev/null; then
-    krack_pager="bat"
+    krackPager="bat"
   else
-    krack_pager="${PAGER:-less}"
+    krackPager="${PAGER:-less}"
   fi
 
-  for diff_file in "${GIT_DIFF_DIR}"/*; do
-    "${krack_pager}" "${diff_file}"
+  for diffFile in "${GIT_DIFF_DIR}"/*; do
+    "${krackPager}" "${diffFile}"
   done
 
   clear
@@ -213,9 +213,9 @@ review_diffs()
 
 status()
 {
-  local start_time_unix
-  local time_now_unix
-  local date_diff
+  local startTimeUnix
+  local timeNowUnix
+  local dateDiff
 
   [[ ! -d "${STATUS_DIR}" ]] &&
     exit_script_on_failure "Status files not found. Have you ran krack-build yet?"
@@ -224,31 +224,31 @@ status()
 
   if grep -q building "${STATUS_STATE_FILE}"; then
     # Calculate how long state has been "building"
-    start_time_unix="$(<"${STATUS_DATE_BUILD_START_FILE}")"
-    time_now_unix="$(date +%s)"
-    date_diff="$(( time_now_unix - start_time_unix ))"
-    printf ", running for %s" "$(date -d@${date_diff} -u +%Hh:%Mm:%Ss)"
+    startTimeUnix="$(<"${STATUS_DATE_BUILD_START_FILE}")"
+    timeNowUnix="$(date +%s)"
+    dateDiff="$(( timeNowUnix - startTimeUnix ))"
+    printf ", running for %s" "$(date -d@${dateDiff} -u +%Hh:%Mm:%Ss)"
 
     printf "\n%sSubstate:%s %s" "${CYAN}" "${NC}" "$(<"${STATUS_SUBSTATE_FILE}")"
     
     if grep -q making "${STATUS_SUBSTATE_FILE}"; then
       # Calculate how long state has been "making" and report last build time
-      start_time_unix="$(<"${STATUS_DATE_MAKE_START_FILE}")"
-      date_diff="$(( time_now_unix - start_time_unix ))"
+      startTimeUnix="$(<"${STATUS_DATE_MAKE_START_FILE}")"
+      dateDiff="$(( timeNowUnix - startTimeUnix ))"
 
-      current_package="$(cut -d' ' -f2 "${STATUS_SUBSTATE_FILE}")"
-      if [[ -f "${MASTER_BUILD_DIR}/${current_package}/.krack-data.json" ]]; then
-        local -r averageBuildTime="$(jq -r .average_build_time "${MASTER_BUILD_DIR}/${current_package}/.krack-data.json")"
+      currentPackage="$(cut -d' ' -f2 "${STATUS_SUBSTATE_FILE}")"
+      if [[ -f "${MASTER_BUILD_DIR}/${currentPackage}/.krack-data.json" ]]; then
+        local -r averageBuildTime="$(jq -r .average_build_time "${MASTER_BUILD_DIR}/${currentPackage}/.krack-data.json")"
         if [[ "${averageBuildTime}" == "" ]]; then
-          average_build_time="time unknown"
+          averageBuildTime="time unknown"
         else
-          average_build_time="took $(date -d@ -u +%Hh:%Mm:%Ss))"
+          averageBuildTime="took $(date -d@ -u +%Hh:%Mm:%Ss))"
         fi
       else
-        average_build_time="time unknown"
+        averageBuildTime="time unknown"
       fi
       
-      printf ", running for %s (last build %s)" "$(date -d@${date_diff} -u +%Hh:%Mm:%Ss)" "${average_build_time}"
+      printf ", running for %s (last build %s)" "$(date -d@${dateDiff} -u +%Hh:%Mm:%Ss)" "${averageBuildTime}"
     fi
   fi
 
@@ -261,14 +261,14 @@ status()
   # otherwise default to 10
   if [[ $# -gt 1 ]]; then
     shift
-    local -r log_lines_to_watch="$1"
+    local -r logLinesToWatch="$1"
   else
-    local -r log_lines_to_watch="10"
+    local -r logLinesToWatch="10"
   fi
 
-  local -r terminal_width="$(tput cols)"
+  local -r terminalWidth="$(tput cols)"
 
-  printf "%sLatest log entries:%s\n%s\n" "${CYAN}" "${NC}" "$(tail -n${log_lines_to_watch} "$(<"${STATUS_CURRENT_LOG_FILE}")" | cut -c 1-"${terminal_width}")"
+  printf "%sLatest log entries:%s\n%s\n" "${CYAN}" "${NC}" "$(tail -n${logLinesToWatch} "$(<"${STATUS_CURRENT_LOG_FILE}")" | cut -c 1-"${terminalWidth}")"
 }
 
 version()
@@ -303,31 +303,31 @@ watch_status()
   # To fill up the terminal completely and without cutting anything off the top,
   # we need to figure out (1) how many lines are available, and (2) how many lines
   # are being printed by the "latest important messages" section
-  local -r terminal_height=$(tput lines)
-  local -r base_lines_used="7" # Lines that are always printed, e.g. "Status: "
-  local num_important_messages
-  num_important_messages="$(wc -l "${STATUS_IMPORTANT_MESSAGE_FILE}" | cut -d' ' -f1)"
+  local -r terminalHeight=$(tput lines)
+  local -r baseLinesUsed="7" # Lines that are always printed, e.g. "Status: "
+  local numImportantMessges
+  numImportantMessges="$(wc -l "${STATUS_IMPORTANT_MESSAGE_FILE}" | cut -d' ' -f1)"
 
   # Max important messages displayed is 8
-  if [[ "${num_important_messages}" -gt 8 ]]; then
-    num_important_messages=8
+  if [[ "${numImportantMessges}" -gt 8 ]]; then
+    numImportantMessges=8
   fi
 
-  local log_display=$(( terminal_height - base_lines_used - num_important_messages ))
+  local log_display=$(( terminalHeight - baseLinesUsed - numImportantMessges ))
 
   while true; do
     status "status" "${log_display}" > "${tmpfile}"
     clear
     cat "${tmpfile}"
     # Recalculate lines 
-    num_important_messages="$(wc -l "${STATUS_IMPORTANT_MESSAGE_FILE}" | cut -d' ' -f1)"
+    numImportantMessges="$(wc -l "${STATUS_IMPORTANT_MESSAGE_FILE}" | cut -d' ' -f1)"
 
     # Max important messages displayed is 8
-    if [[ "${num_important_messages}" -gt 8 ]]; then
-      num_important_messages=8
+    if [[ "${numImportantMessges}" -gt 8 ]]; then
+      numImportantMessges=8
     fi
 
-    local log_display=$(( terminal_height - base_lines_used - num_important_messages ))
+    local log_display=$(( terminalHeight - baseLinesUsed - numImportantMessges ))
     sleep 1
   done
 }
