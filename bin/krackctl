@@ -248,7 +248,7 @@ status()
         averageBuildTime="time unknown"
       fi
       
-      printf ", running for %s (last build %s)" "$(date -d@${dateDiff} -u +%Hh:%Mm:%Ss)" "${averageBuildTime}"
+      printf ", running for %s (average build %s)" "$(date -d@${dateDiff} -u +%Hh:%Mm:%Ss)" "${averageBuildTime}"
     fi
   fi
 
