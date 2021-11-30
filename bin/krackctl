@@ -242,13 +242,13 @@ status()
         if [[ "${averageBuildTime}" == "" ]]; then
           averageBuildTime="time unknown"
         else
-          averageBuildTime="took $(date -d@ -u +%Hh:%Mm:%Ss))"
+          averageBuildTime="time $(date -d@"${averageBuildTime}" -u +%Hh:%Mm:%Ss))"
         fi
       else
         averageBuildTime="time unknown"
       fi
       
-      printf ", running for %s (average build %s)" "$(date -d@${dateDiff} -u +%Hh:%Mm:%Ss)" "${averageBuildTime}"
+      printf ", running for %s (avg build %s)" "$(date -d@${dateDiff} -u +%Hh:%Mm:%Ss)" "${averageBuildTime}"
     fi
   fi
 
