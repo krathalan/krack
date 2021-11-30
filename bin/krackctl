@@ -143,7 +143,7 @@ failed_builds()
     local logCreationDate
     logCreationDate="$(date -d "$(stat -c "%w" "${failedBuild}")" "+%c")"
 
-    printf "%s. %s%s%s (failed at %s%s%s)\n" "${step_counter}" "${YELLOW}" "${failedBuild}" "${NC}" "${BLUE}" "${logCreationDate}" "${NC}"
+    printf "%s. %s%s%s (failed at %s%s%s)\n" "${stepCounter}" "${YELLOW}" "${failedBuild}" "${NC}" "${BLUE}" "${logCreationDate}" "${NC}"
 
     stepCounter=$(( stepCounter + 1 ))
   done
@@ -332,6 +332,60 @@ watch_status()
   done
 }
 
+clear_all_stats()
+{
+  # NYI
+  true
+}
+
+report()
+{
+  local -r tmpdir="$(mktemp -d -t "${SCRIPT_NAME}_XXXXXXXX")"
+  local -r tmpfile="${tmpdir}/report"
+
+  trap 'rm -rf ${tmpdir}' INT SIGINT EXIT
+
+  for package in "${MASTER_BUILD_DIR}"/*; do
+    report_helper "${package}" >> "${tmpfile}"
+  done
+
+  if command -v bat &> /dev/null; then
+    krackPager="bat"
+  else
+    krackPager="${PAGER:-less}"
+  fi
+
+  $krackPager "${tmpfile}"
+}
+
+# $1: package directory
+report_helper()
+{
+  if [[ ! -f "$1/.krack-data.json" ]]; then
+    return
+  fi
+
+  mapfile -t packageData <<< "$(jq -r ".average_build_time, .last_build_time, .last_built_version, .build_failure, .number_of_times_built" "$1/.krack-data.json")"
+  
+  printf "## %s ##\n" "${1##*/}"
+
+  if [[ ! "${packageData[0]:-}" == "" ]]; then
+    printf "Average build time: %s\n" "$(date -d@"${packageData[0]}" -u +%Hh:%Mm:%Ss)"
+  fi
+  
+  if [[ ! "${packageData[1]:-}" == "" ]]; then
+    printf "Last build time: %s\n" "$(date -d@"${packageData[1]}" -u +%Hh:%Mm:%Ss)"
+  fi
+
+  printf "Last built version: %s\n" "${packageData[2]:-}"
+
+  if [[ ! "${packageData[3]:-}" == "" ]]; then
+    printf "Build failure: %s\n" "${packageData[3]}"
+  fi
+
+  printf "Number of times built: %s\n\n" "${packageData[4]:-0}"
+}
+
 # -----------------------------------------
 # ---------------- Script -----------------
 # -----------------------------------------
@@ -357,6 +411,7 @@ case "$1" in
   failed-builds) failed_builds ;;
   list-diffs) list_diffs ;;
   review-diffs) review_diffs ;;
+  report) report ;;
   request-build) request_build "$@" ;;
   pending-builds) pending_builds ;;
   cancel-all-requests) cancel_all_requests ;;

@@ -311,15 +311,15 @@ build_package()
   fi
 
   for packageTarball in "${PWD}"/*.pkg.tar.zst; do
-    if [[ -f "${PKG_CACHE_DIR}/${packageTarball##*/}" ]]; then
-      print_info "Package ${currentPackage} with the same version is already in the krack pkgcache; the cat is mildly annoyed 😾"
-      continue
-    fi
-
     # Store built version number
     local -r builtVersionNumber="$(tar -O -I zstd -xf "${packageTarball}" .PKGINFO | grep pkgver | cut -d' ' -f3)"
     write_setting "last_built_version" "${builtVersionNumber}" "${currentPackage}"
 
+    if [[ -f "${PKG_CACHE_DIR}/${packageTarball##*/}" ]]; then
+      print_info "Package ${currentPackage} with the same version is already in the krack pkgcache; the cat is mildly annoyed 😾"
+      continue
+    fi
+    
     print_info "Copying package to local krack-build pkgcache"
     # Remove old packages first
     rm -f "${PKG_CACHE_DIR}/${currentPackage}"*
