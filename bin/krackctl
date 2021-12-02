@@ -243,7 +243,7 @@ status()
         if [[ "${averageBuildTime}" == "" ]]; then
           averageBuildTime="time unknown"
         else
-          averageBuildTime="time $(date -d@"${averageBuildTime}" -u +%Hh:%Mm:%Ss))"
+          averageBuildTime="time $(date -d@"${averageBuildTime}" -u +%Hh:%Mm:%Ss)"
         fi
       else
         averageBuildTime="time unknown"
