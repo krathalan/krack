@@ -238,7 +238,8 @@ status()
 
       currentPackage="$(cut -d' ' -f2 "${STATUS_SUBSTATE_FILE}")"
       if [[ -f "${MASTER_BUILD_DIR}/${currentPackage}/.krack-data.json" ]]; then
-        local -r averageBuildTime="$(jq -r .average_build_time "${MASTER_BUILD_DIR}/${currentPackage}/.krack-data.json")"
+        local averageBuildTime
+        averageBuildTime="$(jq -r .average_build_time "${MASTER_BUILD_DIR}/${currentPackage}/.krack-data.json")"
         if [[ "${averageBuildTime}" == "" ]]; then
           averageBuildTime="time unknown"
         else
