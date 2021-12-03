@@ -303,6 +303,9 @@ build_package()
     numberOfTimesBuilt=$(( numberOfTimesBuilt + 1 ))
     write_setting "number_of_times_built" "${numberOfTimesBuilt}" "${currentPackage}"
   fi
+  
+  # Store build date
+  write_setting "last_build_date" "$(date +%s)" "${currentPackage}"
 
   if [[ -f "${PWD}/krack-postbuild.sh" ]]; then
     print_info "Executing krack-postbuild.sh"
@@ -348,7 +351,7 @@ build_package()
 make_build_data_file()
 {
   if [[ ! -f "$1/.krack-data.json" ]]; then
-    printf "{\"average_build_time\": \"\",\"last_build_time\": \"\",\"last_built_version\": \"\",\"build_failure\": \"\",\"number_of_times_built\": \"\"}" > "$1/.krack-data.json"
+    printf "{\"average_build_time\": \"\",\"last_build_time\": \"\",\"last_built_version\": \"\",\"build_failure\": \"\",\"number_of_times_built\": \"\",\"last_build_date\": \"\"}" > "$1/.krack-data.json"
   fi
 }
 
