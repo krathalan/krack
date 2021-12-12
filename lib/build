@@ -166,7 +166,10 @@ build_package()
   if [[ -f "${PWD}/krack-prepull.sh" ]]; then
     print_info "Executing krack-prepull.sh"
     # shellcheck disable=SC1091
-    source "${PWD}/krack-prepull.sh"
+    source "${PWD}/krack-prepull.sh" || {
+      important "Executing krack-prepull.sh failed for ${currentPackage}. Requesting rebuild during next build cycle"
+      return
+    }
   fi
 
   # Get current git commit hash
@@ -201,7 +204,10 @@ build_package()
   if [[ -f "${PWD}/krack-postpull.sh" ]]; then
     print_info "Executing krack-postpull.sh"
     # shellcheck disable=SC1091
-    source "${PWD}/krack-postpull.sh"
+    source "${PWD}/krack-postpull.sh" || {
+      important "Executing krack-postpull.sh failed for ${currentPackage}. Requesting rebuild during next build cycle"
+      return
+    }
   fi
 
   if [[ -f "${PWD}/krack-request-build" ]]; then
@@ -310,7 +316,10 @@ build_package()
   if [[ -f "${PWD}/krack-postbuild.sh" ]]; then
     print_info "Executing krack-postbuild.sh"
     # shellcheck disable=SC1091
-    source "${PWD}/krack-postbuild.sh"
+    source "${PWD}/krack-postbuild.sh" || {
+      important "Executing krack-postbuild.sh failed for ${currentPackage}. Requesting rebuild during next build cycle"
+      return
+    }
   fi
 
   for packageTarball in "${PWD}"/*.pkg.tar.zst; do
