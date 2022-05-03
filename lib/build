@@ -258,11 +258,12 @@ build_package()
 
   local -r buildStopTime="$(date +%s)"
 
+  # Delete old failed build logs for this package, regardless of success or failure
+  # If build succeeds we don't need a failure log, if build fails we only want the most recent log
+  rm -f "${FAILED_BUILDS_LOG_DIR}/${currentPackage}"*
+
   # If the build failed...
   if [[ "${buildOutcome}" != 0 ]]; then
-    # Delete old failed build logs for this package
-    rm -f "${FAILED_BUILDS_LOG_DIR}/${currentPackage}"*
-
     # Save tmp log to failed build logs dir
     local -r log_file_name="${currentPackage}-$(date "+%Y%m%d-%H%M%S").log"
     cp "${TMP_LOG}" "${FAILED_BUILDS_LOG_DIR}/${log_file_name}"
