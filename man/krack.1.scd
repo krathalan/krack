@@ -83,11 +83,12 @@ You will need to make an Arch chroot for building packages. You can create one w
 
 Next, you will need to create a user specifically for krack-build on the builder PC. You can name this user whatever you want to. You will also need to create a GPG and an ssh key on this user, for signing and uploading packages respectively. Ensure you can ssh from your builder user on your builder PC to your receiving user on your receiving PC. Ensure you can sign files with your new GPG key.
 
-You will need to set up sudo permissions such that your builder user can use makechrootpkg and arch-nspawn (to update the build chroot) without having to enter a password. You can do this with the following line in /etc/sudoers:
+You will need to set up sudo permissions such that your builder user can use makechrootpkg and arch-nspawn (to update the build chroot) without having to enter a password. Additionally, as of devtools-20211129, you must allow your builder user to keep the BUILDTOOL and BUILDTOOLVER environment variables when using sudo. You can do this by adding the following lines to /etc/sudoers:
 
 builder-user ALL=(ALL) NOPASSWD:/usr/bin/makechrootpkg, /usr/bin/arch-nspawn
+Defaults:builder-user env_keep += "BUILDTOOL BUILDTOOLVER"
 
-Change "builder-user" to the name of your builder user you chose earlier.
+Change "builder-user" in both lines to the name of your builder user you chose earlier.
 
 Finally, you will need to edit /etc/krack/build.conf for your specific setup:
 
