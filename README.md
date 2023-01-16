@@ -29,6 +29,9 @@ All of the **documentation** comes in the form of man pages. Before using `krack
 2. No support for non-zstd compressed packages.
 3. No option to not use GPG package signing.
 
+### Project update goals
+1. Change krack-build to run on a systemd @.service/timer
+
 ## Installation
 Install `krack` from the AUR: https://aur.archlinux.org/packages/krack/
 
