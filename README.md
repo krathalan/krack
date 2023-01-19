@@ -23,6 +23,7 @@ All of the **documentation** comes in the form of man pages. Before using `krack
 6. Saves last package build times for next new package build reporting (with `krackctl watch-status`).
 7. Lets you request package builds (with `kracktl request-build ${pkgname}`) and manage your pending build requests (with `krackctl pending-builds` and `krackctl cancel-all-requests`).
 8. Low overhead.
+9. Since all krack executables are run as a systemd system service, they restart automatically on reboot and have a number of other advantages, such as being able to limit the amount of system resources they are allowed to use.
 
 ### Outstanding issues
 1. No option to auto-import GPG keys for source file verification.
