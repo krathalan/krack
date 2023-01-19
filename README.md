@@ -30,6 +30,7 @@ All of the **documentation** comes in the form of man pages. Before using `krack
 1. No option to auto-import GPG keys for source file verification.
 2. No support for non-zstd compressed packages.
 3. No option to not use GPG package signing.
+4. No way to detect a hanging/stuck package build.
 
 ### Project update goals
 1. Change krack-build to run on a systemd @.service/timer
