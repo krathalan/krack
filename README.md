@@ -31,6 +31,7 @@ All of the **documentation** comes in the form of man pages. Before using `krack
 
 ### Project update goals
 1. Change krack-build to run on a systemd @.service/timer
+2. Implement a "rebuild" feature that bumps pkgrel by +1. This would have to track external pkgrel bumps until the pkgver increases.
 
 ## Installation
 Install `krack` from the AUR: https://aur.archlinux.org/packages/krack/
