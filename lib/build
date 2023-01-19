@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
 #
-# Description: Builds packages automatically forever and sends them
-#              via rsync to a specified host.
+# Description: Builds packages and sends them via rsync to a specified host.
 #
 # Homepage: https://github.com/krathalan/krack
-# Copyright (C) 2020-2021 Hunter Peavey
+# Copyright (C) 2020-2023 Hunter Peavey
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 # -----------------------------------------
@@ -39,36 +38,9 @@ TMP_DIR="$(mktemp -d -t "krack-build_XXXXXXXX")"
 readonly TMP_DIR
 readonly TMP_LOG="${TMP_DIR}/tmp.log"
 
-# Used to track sleep cycle
-NEXT_WAKE=""
-
 # -----------------------------------------
 # --------------- Functions ---------------
 # -----------------------------------------
-
-#######################################
-# Checks to see if `krackctl awaken` has been invoked while
-# krack-build is sleeping
-# Globals:
-#   STATUS_DIR
-#   sleepPid
-# Arguments:
-#   none
-# Returns:
-#   none
-#######################################
-check_awaken_request()
-{
-  if [[ -f "${STATUS_DIR}/krack-request-awaken" ]]; then
-    # Clean up request file
-    rm -f "${STATUS_DIR}/krack-request-awaken"
-    # Clean up our sleeping child....
-    kill "${sleepPid}"
-    return 0 # Awaken!
-  else
-    return 1 # Slumber...
-  fi
-}
 
 #######################################
 # Removes old build artifacts (packages, logs, sigs).
@@ -118,10 +90,6 @@ exit_script_on_failure()
   state "death"
   printf "%sERROR%s: %s\n" "${RED}" "${NC}" "$1" >&2
 
-  if [[ "${LOG_SETTING}" == *"systemd"* ]]; then
-    printf "ERROR: %s" "$1" | systemd-cat --identifier="krack-build" --priority="emerg"
-  fi
-
   exit 1
 }
 
@@ -137,10 +105,6 @@ exit_script_on_failure()
 print_info()
 {
   printf "%sInfo:%s %s\n" "${WHITE}" "${NC}" "$1"
-  
-  if [[ "${LOG_SETTING}" == *"systemd"* ]]; then
-    printf "%s" "$1" | systemd-cat --identifier="krack-build" --priority="info"
-  fi
 }
 
 #######################################
@@ -399,17 +363,11 @@ important()
   sed -i '/nothing yet :)/d' "${STATUS_IMPORTANT_MESSAGE_FILE}"
   printf "%s\n" "$1" >> "${STATUS_IMPORTANT_MESSAGE_FILE}"
   printf "%sERROR: %s%s\n" "${RED}" "$1" "${NC}"
-  
-  
-  if [[ "${LOG_SETTING}" == *"systemd"* ]]; then
-    printf "ERROR: %s" "$1" | systemd-cat --identifier="krack-build" --priority="err"
-  fi
 }
 
 #######################################
 # Updates the state of the running krack-build instance.
 # Globals:
-#   NEXT_WAKE
 #   STATUS_DATE_BUILD_START_FILE
 # Arguments:
 #   $1: info message to print
@@ -421,7 +379,7 @@ state()
   case "$1" in
     starting) state_helper "starting up..." ;;
     death) state_helper "pronounced dead at $(date). Kitty is sad 😿" ;;
-    sleeping) state_helper "sleeping until ${NEXT_WAKE}" ;;
+    sleeping) state_helper "sleeping until next rebuild" ;;
     building) state_helper "building (started at $(date +%r))"
               date +%s > "${STATUS_DATE_BUILD_START_FILE}"
               ;;
@@ -483,69 +441,32 @@ if [[ ! -e "${MAKECHROOTPKG_DIR}" ]]; then
   exit_script_on_failure "Makechrootpkg dir ${MAKECHROOTPKG_DIR} doesn't exist. Please run \`sudo krackctl create-chroot\`, or create your own build chroot and specify its location in /etc/krack/build.conf."
 fi
 
-if [[ "$*" == *"--start-asleep"* ]]; then
-  readonly START_ASLEEP="true"
+print_info "Good morning honey, it is $(date) and it's time to build packages again"
+print_info "Flushing important messages log"
+printf "nothing yet :)" > "${STATUS_IMPORTANT_MESSAGE_FILE}"
+
+print_info "Cleaning out master package directory before building"
+clean_pkgbuild_dirs
+
+# Update build chroot once before each build cycle, not each time
+# we build with makechrootpkg (to reduce strain on mirrors)
+print_info "Upgrading build chroot before building"
+arch-nspawn "${MAKECHROOTPKG_DIR}/root" pacman -Syu --noconfirm
+
+state "building"
+# Check for empty build dir (https://unix.stackexchange.com/a/202276)
+# shellcheck disable=2010
+if ls -1qA "${MASTER_BUILD_DIR:-}" | grep -q .; then
+  # Run build cycle
+  for pkgdir in "${MASTER_BUILD_DIR:-}"/*; do
+    if [[ -d "${pkgdir}" ]]; then
+      build_package "${pkgdir}"
+    fi
+  done
+  print_info "It is $(date) and all packages have finished building"
 else
-  readonly START_ASLEEP="false"
+  print_info "There are no package directories in ${MASTER_BUILD_DIR:-}."
 fi
 
-SKIP_COMPLETE="false"
-
-while true; do
-  print_info "Good morning honey, it is $(date) and it's time to build packages again"
-  print_info "Flushing important messages log"
-  printf "nothing yet :)" > "${STATUS_IMPORTANT_MESSAGE_FILE}"
-
-  if [[ "${SKIP_COMPLETE}" == "false" ]] && [[ "${START_ASLEEP}" == "true" ]]; then
-    print_info "Oh boy, extra naps! Starting asleep, zzZZzzz..."
-    SKIP_COMPLETE="true"
-  else
-    print_info "Cleaning out master package directory before building"
-    clean_pkgbuild_dirs
-
-    # Update build chroot once before each build cycle, not each time
-    # we build with makechrootpkg (to reduce strain on mirrors)
-    print_info "Upgrading build chroot before building"
-    arch-nspawn "${MAKECHROOTPKG_DIR}/root" pacman -Syu --noconfirm
-
-    state "building"
-    # Check for empty build dir (https://unix.stackexchange.com/a/202276)
-    # shellcheck disable=2010
-    if ls -1qA "${MASTER_BUILD_DIR:-}" | grep -q .; then
-      # Run build cycle
-      for pkgdir in "${MASTER_BUILD_DIR:-}"/*; do
-        if [[ -d "${pkgdir}" ]]; then
-          build_package "${pkgdir}"
-        fi
-      done
-      print_info "It is $(date) and all packages have finished building"
-    else
-      print_info "There are no package directories in ${MASTER_BUILD_DIR:-}."
-    fi
-  fi
-
-  NEXT_WAKE="$(date -d "$(date)+${SLEEP_HOURS} hours")"
-  state "sleeping"
-  print_info "The next build cycle will occur ${SLEEP_HOURS} hours from now at ${NEXT_WAKE}"
-  # Custom printf here because we don't want a new line, for the spinner
-  printf "%sInfo:%s %sNapping until then...%s " "${WHITE}" "${NC}" "${PURPLE}" "${NC}"
-
-  # https://unix.stackexchange.com/a/225183
-  sleep "${SLEEP_HOURS}"h &
-  sleepPid=$!
-  i=1
-  sp="/-\|"
-  echo -n ' '
-  while [[ -d "/proc/${sleepPid}" ]];  do
-    printf "\b%s" ${sp:i++%${#sp}:1}
-
-    # Check to see if the user has requested krack-build to wake up
-    if check_awaken_request; then
-      break
-    fi
-
-    sleep 0.75
-  done
-
-  printf "\n"
-done
+state "sleeping"
+printf "%sInfo:%s %sNapping until next rebuild...%s " "${WHITE}" "${NC}" "${PURPLE}" "${NC}"

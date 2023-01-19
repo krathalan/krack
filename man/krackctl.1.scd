@@ -10,7 +10,7 @@ krackctl [*COMMAND*] [_args_]...
 
 # DESCRIPTION
 
-Krackctl gives you insight into the running krack-build instance and gives you some control over its behavior. Krackctl must be run as the same user running krack-build.
+Krackctl gives you insight into the running krack-build instance and gives you some control over its behavior. *Krackctl must be run as the same user running krack-build.*
 
 # COMMANDS
 
@@ -35,9 +35,6 @@ krackctl *watch-status*
 	Runs krackctl status every one second, taking up the entire terminal width and height.
 
 ## Control
-
-krackctl *awaken*
-	If krack-build is sleeping, this command will wake it up immediately to begin building packages again. The next sleep time will be reset. If krack-build is currently awake, it will wake up immediately after the current build cycle is finished.
 
 krackctl *build-all*
 	Creates an empty file 'krack-request-build' in every package directory and clears the krack-build cache. This will force krack-build to build and upload every package the next time krack-build checks for each package's up-to-date status.

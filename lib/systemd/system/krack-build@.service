@@ -4,9 +4,6 @@ Doucmentation=man:krack(1)
 After=network.target
 
 [Service]
+Type=oneshot
 User=%i
 ExecStart=krack-build
-Restart=on-failure
-
-[Install]
-WantedBy=multi-user.target

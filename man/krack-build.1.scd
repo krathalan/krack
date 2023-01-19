@@ -12,13 +12,7 @@ krack-build [_--flags_]...
 
 krack-build will read configuration options from /etc/krack/build.conf. The default /etc/krack/build.conf file included with the krack package has comments in the file explaining each configuration option.
 
-Note that you will likely not want to run krack-build manually, but instead use the _krack-build@.service_ systemd system service to manage (start on boot/restart on failure) your krack-build process.
-
-# FLAGS
-
-*--start-asleep*
-	Starts krack-build as if it had just finished a build cycle. It will sleep for the defined SLEEP_HOURS in /etc/krack/build.conf, as usual. This flag is useful after updating krack.++
-	e.g. krack-build *--start-asleep*
+Note that you will likely not want to run krack-build manually, but instead use the _krack-build@.service/timer_ systemd system service to manage (start on boot/restart on failure) your krack-build process. See *krack*(1) for more information on using systemd with krack.
 
 # SEE ALSO
 *krack*(1), *krackctl*(1)

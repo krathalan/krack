@@ -44,12 +44,6 @@ print_info()
   printf "%sInfo:%s %s\n" "${WHITE}" "${NC}" "$1"
 }
 
-awaken()
-{
-  touch "${STATUS_DIR}/krack-request-awaken"
-  print_info "Wakey wakey eggs and bakey"
-}
-
 build_all()
 {
   touch "${DATA_DIR}"/packages/*/krack-request-build
@@ -405,7 +399,6 @@ elif [[ "$1" == "clean-logs" ]] && [[ $# -lt 2 ]]; then
 fi
 
 case "$1" in
-  awaken) awaken ;;
   build-all) build_all ;;
   clean-logs) clean_logs "$2" ;;
   create-chroot) create_chroot ;;
