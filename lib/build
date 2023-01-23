@@ -470,3 +470,5 @@ fi
 
 state "sleeping"
 printf "%sInfo:%s %sNapping until next rebuild...%s " "${WHITE}" "${NC}" "${PURPLE}" "${NC}"
+
+exit 0

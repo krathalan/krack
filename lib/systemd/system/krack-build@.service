@@ -1,9 +1,10 @@
 [Unit]
-Description: krack-build - continuous build system for Arch for %I
-Doucmentation=man:krack(1)
+Description=krack-build - continuous build system for Arch for %I
+Documentation=man:krack(1)
 After=network.target
 
 [Service]
 Type=oneshot
 User=%i
+Group=%i
 ExecStart=krack-build
