@@ -53,12 +53,14 @@ readonly TMP_LOG="${TMP_DIR}/tmp.log"
 #######################################
 clean_pkgbuild_dirs()
 {
+  # Clean pkgcache of old packages
+  find "${PKG_CACHE_DIR}" -type d -exec paccache -v -r -k 1 -c {} \;
+
+  # Clean master package directory of all build artifacts
   local toClean
   mapfile -t toClean <<< "$(find -L "${MASTER_BUILD_DIR}" -type f \( -name "*.gz" -o -name "*.xz" -o -name "*.zst" -o -name "*.lz4" -o -name "*.log" -o -name "*.sig" -o -name "*.asc" \))"
 
-  for file in "${toClean[@]}"; do
-    rm -f "${file}"
-  done
+  rm -f "${toClean[@]}"
 }
 
 #######################################
@@ -300,8 +302,6 @@ build_package()
     fi
     
     print_info "Copying package to local krack-build pkgcache"
-    # Remove old packages first
-    rm -f "${PKG_CACHE_DIR}/${currentPackage}"*
     cp "${packageTarball}" "${PKG_CACHE_DIR}"
 
     print_info "Signing package and uploading to ${DROPBOX_PATH}"
@@ -445,7 +445,7 @@ print_info "Good morning honey, it is $(date) and it's time to build packages ag
 print_info "Flushing important messages log"
 printf "nothing yet :)" > "${STATUS_IMPORTANT_MESSAGE_FILE}"
 
-print_info "Cleaning out master package directory before building"
+print_info "Cleaning out pkgcache and master package directories before building"
 clean_pkgbuild_dirs
 
 # Update build chroot once before each build cycle, not each time
