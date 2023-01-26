@@ -4,7 +4,7 @@ Documentation=man:krack(1)
 After=network.target
 
 [Service]
-Type=oneshot
+Type=simple
 User=%i
 Group=%i
 ExecStart=krack-build
