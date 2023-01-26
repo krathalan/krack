@@ -417,7 +417,7 @@ substate()
     making) substate_helper "making ${currentPackage}, package (${BUILD_INDEX}/${NUM_TOTAL_PACKAGES})"
             date +%s > "${STATUS_DATE_MAKE_START_FILE}"
             ;;
-    preparing) substate_helper "preparing for build" ;;
+    preparing) substate_helper "preparing for build, package (${BUILD_INDEX}/${NUM_TOTAL_PACKAGES})" ;;
     uploading) substate_helper "uploading built ${currentPackage} package" ;;
   esac
 }
@@ -463,7 +463,7 @@ print_info "Upgrading build chroot before building"
 arch-nspawn "${MAKECHROOTPKG_DIR}/root" pacman -Syu --noconfirm
 
 # Get number of packages in ${MASTER_BUILD_DIR}
-readonly NUM_TOTAL_PACKAGES="$(( $(find -L . -maxdepth 1 -type d | wc -l) - 1 ))"
+readonly NUM_TOTAL_PACKAGES="$(( $(find -L "${MASTER_BUILD_DIR}" -maxdepth 1 -type d | wc -l) - 1 ))"
 
 state "building"
 # Check for empty build dir (https://unix.stackexchange.com/a/202276)
