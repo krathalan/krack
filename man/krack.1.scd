@@ -170,14 +170,12 @@ By using systemd to run krack-build, you can greatly customize how and when the 
 */etc/systemd/system/krack-build@.service.d/restrict-resources.conf*
 ```
 [Service]
-CPUAffinity=0,1
+AllowedCPUs=0,1
 Nice=19
 IOSchedulingPriority=7
 ```
 
-NYI/TODO: Use AllowedCPUs instead of CPUAffinity???
-
-....would restrict krack-build to only the first two CPU threads and have lower priority process and IO scheduling. This may be useful if you run other services on your builder PC and want to prioritize those services before krack-build. See *man systemd.resource-control* and *PROCESS PROPERTIES* in *man systemd.exec* for other ways to limit system resources.
+....would restrict krack-build to only the first two logical CPUs and have lower priority process and IO scheduling. This may be useful if you run other services on your builder PC and want to prioritize those services before krack-build. See *man systemd.resource-control* and *PROCESS PROPERTIES* in *man systemd.exec* for other ways to limit system resources.
 
 ## CCACHE COMPLIANCE
 
