@@ -20,6 +20,7 @@ set -Eeuo pipefail
 
 # Kill possible waiting sleep process if krack-build is terminated
 trap "clean_up && state death && kill 0" SIGINT
+trap "clean_up" EXIT
 
 # -----------------------------------------
 # ----------- Program variables -----------
@@ -379,7 +380,11 @@ state()
   case "$1" in
     starting) state_helper "starting up..." ;;
     death) state_helper "pronounced dead at $(date). Kitty is sad 😿" ;;
-    sleeping) state_helper "sleeping until next rebuild" ;;
+    sleeping) local next_rebuild_time="$(systemctl status krack-build@${USER}.timer | grep "Trigger:")"
+              next_rebuild_time="${next_rebuild_time##*Trigger: }"
+              printf "%sInfo:%s %sNapping until next rebuild at %s...%s " "${WHITE}" "${NC}" "${PURPLE}" "${next_rebuild_time}" "${NC}"
+              state_helper "sleeping until next rebuild at ${next_rebuild_time}"
+              ;;
     building) state_helper "building (started at $(date +%r))"
               date +%s > "${STATUS_DATE_BUILD_START_FILE}"
               ;;
@@ -469,4 +474,3 @@ else
 fi
 
 state "sleeping"
-printf "%sInfo:%s %sNapping until next rebuild...%s " "${WHITE}" "${NC}" "${PURPLE}" "${NC}"
