@@ -138,7 +138,7 @@ You can run *krackctl status* on the builder PC to get a good overview of your c
 
 If krack-build pulls in new commits during the "git pull" part of the build process, it will save the output of the diff between the new commit and the old commit to a file. Diffs can be listed with the command *krackctl list-diffs*.
 
-Each time krack-build starts building a package, it saves the full output of the makechrootpkg command for that package build to a temporary log file. If the makechrootpkg command fails, the temporary file is made permanent at ~/.local/share/krack/logs/failed-builds. Only the latest failed build log is saved for a given package, so if you leave krack unattended for a few build cycles and a package fails to build a few times you won't be overwhelmed with multiple failure logs.
+Each time krack-build starts building a package, it saves the full output of the makechrootpkg command for that package build to a temporary log file. If the makechrootpkg command fails, the temporary file is made permanent at ~/.local/share/krack/logs/failed-builds. Only the latest failed build log is saved for a given package, so if you leave krack unattended for a few build cycles and a package fails to build a few times, you won't be overwhelmed with multiple failure logs.
 
 Failed build logs can be listed with the command *krackctl failed-builds*. You can use your favorite pager to view these files.
 
@@ -163,6 +163,21 @@ Krack-build supports custom build hooks. The build process for any package happe
 You can put any valid Bash in all krack\*.sh scripts, and they will be sourced by krack-build at the indicated step in the build process. These scripts can be used for many things like patching PKGBUILDs or other source files. *But be careful!* Since krack-build is *sourcing* your scripts, if you cd anywhere, krack-build will too. And if you patch files other than the PKGBUILD, make sure to *git checkout* them out again in krack-prepull.sh if you want to avoid build failures when attempting to merge incompatible files during *git pull* in the build process. (However, this is not always desirable -- you may wish to be notified of incompatible files this way if you want to update your patche(s) to accomodate new changes, if these files are not updated frequently enough to be a nuisance.)
 
 These scripts should be placed in the package directory that they are affecting.
+
+## SYSTEMD FEATURES
+By using systemd to run krack-build, you can greatly customize how and when the service runs. Perhaps most importantly, you can use systemd to restrict how much of the system resources the krack-build service uses. To add or change the krack-build service, create a directory at */etc/systemd/system/krack-build@.service.d* and add drop-in .conf files. For example, the following file:
+
+*/etc/systemd/system/krack-build@.service.d/restrict-resources.conf*
+```
+[Service]
+CPUAffinity=0,1
+Nice=19
+IOSchedulingPriority=7
+```
+
+NYI/TODO: Use AllowedCPUs instead of CPUAffinity???
+
+....would restrict krack-build to only the first two CPU threads and have lower priority process and IO scheduling. This may be useful if you run other services on your builder PC and want to prioritize those services before krack-build. See *man systemd.resource-control* and *PROCESS PROPERTIES* in *man systemd.exec* for other ways to limit system resources.
 
 ## CCACHE COMPLIANCE
 

@@ -23,7 +23,7 @@ All of the **documentation** comes in the form of man pages. Before using `krack
 6. Saves last package build times for next new package build reporting (with `krackctl watch-status`).
 7. Lets you request package builds (with `kracktl request-build ${pkgname}`) and manage your pending build requests (with `krackctl pending-builds` and `krackctl cancel-all-requests`).
 8. Low overhead.
-9. Since all krack executables are run as a systemd system service, they restart automatically on reboot and have a number of other advantages, such as being able to limit the amount of system resources they are allowed to use.
+9. Since all krack executables are run as a systemd system service, they restart or persist automatically on reboot and have a number of other advantages, such as being able to execute custom code before/after a service or limit the amount of system resources the builder service is allowed to use.
 10. Krack-receive does not use its own service that listens on a port, but instead relies on rsync and ssh.
 
 ### Outstanding issues
