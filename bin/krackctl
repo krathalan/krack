@@ -231,6 +231,7 @@ status()
       dateDiff="$(( timeNowUnix - startTimeUnix ))"
 
       currentPackage="$(cut -d' ' -f2 "${STATUS_SUBSTATE_FILE}")"
+      currentPackage="${currentPackage%%,}"
       if [[ -f "${MASTER_BUILD_DIR}/${currentPackage}/.krack-data.json" ]]; then
         local averageBuildTime
         averageBuildTime="$(jq -r .average_build_time "${MASTER_BUILD_DIR}/${currentPackage}/.krack-data.json")"
