@@ -15,4 +15,3 @@ CURRENT_LOG_FILE="${LOG_DIR}/$(date +"%m-%d-%Y_%s").log"
 printf "%s" "${CURRENT_LOG_FILE}" > "${STATUS_CURRENT_LOG_FILE}"
 touch "${CURRENT_LOG_FILE}"
 bash /usr/lib/krack/build "$@" | tee -a "${CURRENT_LOG_FILE}"
-exit 0

@@ -19,7 +19,7 @@
 set -Eeuo pipefail
 
 # Kill possible waiting sleep process if krack-build is terminated
-trap "clean_up && state death && kill 0" SIGINT EXIT
+trap "clean_up && state death && kill 0" SIGINT
 
 # -----------------------------------------
 # ----------- Program variables -----------
@@ -114,7 +114,7 @@ print_info()
 # Globals:
 #   lots?
 # Arguments:
-#   $1: package directory 
+#   $1: package directory
 # Returns:
 #   none
 #######################################
@@ -145,7 +145,7 @@ build_package()
   git checkout PKGBUILD &> /dev/null
 
   # Pull in new commits
-  # git pull can fail for a multitude of reasons, and we 
+  # git pull can fail for a multitude of reasons, and we
   # should prepare to handle it gracefully
   set +Ee
 
@@ -258,7 +258,7 @@ build_package()
   local averageBuildTime
   averageBuildTime="$(jq -r .average_build_time "${directory}/.krack-data.json")"
 
-  if [[ "${averageBuildTime}" == "" ]]; then  
+  if [[ "${averageBuildTime}" == "" ]]; then
     write_setting "average_build_time" "${elapsedBuildTime}" "${currentPackage}"
   else
     averageBuildTime=$(( averageBuildTime + elapsedBuildTime ))
@@ -270,13 +270,13 @@ build_package()
   local numberOfTimesBuilt
   numberOfTimesBuilt="$(jq -r .number_of_times_built "${directory}/.krack-data.json")"
 
-  if [[ "${numberOfTimesBuilt}" == "" ]]; then  
+  if [[ "${numberOfTimesBuilt}" == "" ]]; then
     write_setting "number_of_times_built" "1" "${currentPackage}"
   else
     numberOfTimesBuilt=$(( numberOfTimesBuilt + 1 ))
     write_setting "number_of_times_built" "${numberOfTimesBuilt}" "${currentPackage}"
   fi
-  
+
   # Store build date
   write_setting "last_build_date" "$(date +%s)" "${currentPackage}"
 
@@ -300,7 +300,7 @@ build_package()
       print_info "Package ${currentPackage} with the same version is already in the krack pkgcache; the cat is mildly annoyed 😾"
       continue
     fi
-    
+
     print_info "Copying package to local krack-build pkgcache"
     cp "${packageTarball}" "${PKG_CACHE_DIR}"
 
@@ -470,5 +470,3 @@ fi
 
 state "sleeping"
 printf "%sInfo:%s %sNapping until next rebuild...%s " "${WHITE}" "${NC}" "${PURPLE}" "${NC}"
-
-exit 0
