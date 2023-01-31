@@ -1,5 +1,5 @@
 [Unit]
-Description: Timer for krack-build - continuous build system for Arch for %I
+Description=Timer for krack-build - continuous build system for Arch for %I
 Documentation=man:krack(1)
 
 # This timer will activate 2 minutes after boot. The timer will re-trigger 20
