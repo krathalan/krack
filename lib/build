@@ -62,10 +62,20 @@ clean_pkgbuild_dirs()
 
   # Clean master package directory of all build artifacts
   local toClean
-  mapfile -t toClean <<< "$(find -L "${MASTER_BUILD_DIR}" -type f \( -name "*.gz" -o -name "*.xz" -o -name "*.zst" -o -name "*.lz4" -o -name "*.log" -o -name "*.sig" -o -name "*.asc" \))"
 
-  rm -f "${toClean[@]}"
+  for dir in "${MASTER_BUILD_DIR}"/*; do
+    mapfile -t toClean <<< "$(find -L "${dir}" -type f \( -name "*.gz" -o -name "*.xz" -o -name "*.zst" -o -name "*.lz4" -o -name "*.log" -o -name "*.sig" -o -name "*.asc" \))"
+
+    cd "${dir}"
+    for file in "${toClean[@]}"; do
+      # Make sure the file is not tracked by git before deleting
+      if ! git ls-files --error-unmatch "${file}"; then
+        rm -f "${file}"
+      fi
+    done
+  done
 }
+
 
 #######################################
 # Removes TMP_DIR used to store temporary build logs.
