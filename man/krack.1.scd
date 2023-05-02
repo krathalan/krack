@@ -14,7 +14,7 @@ The specific use case krack is built for, is having a PC at home which can build
 
 ## KRACK-BUILD
 
-Krack-build is the largest program of the bunch and will run via a systemd unit triggered periodically by a systemd timer on the building PC as a user specifically made for building and sending packages. It will create a directory ~/.local/share/krack/ in the invoking user's home directory. Under this directory, several more are created: 
+Krack-build is the largest program of the bunch and will run via a systemd unit triggered periodically by a systemd timer on the building PC, running as a user specifically made for building and sending packages. It will create a directory ~/.local/share/krack/ in the invoking user's home directory. Under this directory, several more are created: 
 
 - logs/, for holding logs automatically created by krack-build;
 - packages/, for holding package directories containing PKGBUILDs and other source files (referred to henceforth as the "package directory"); and
@@ -22,7 +22,7 @@ Krack-build is the largest program of the bunch and will run via a systemd unit 
 
 The logs directory will be filled with logs containing the entirety of krack-build's output, including all of makechrootpkg's output. These logs can grow quite large, so krackctl can help you parse these logs easily and get a good feel for the health of your running krack-build instance. You can read more about krackctl in *READING LOGS*.
 
-You should fill the package directory with other directories, each containing PKGBUILDs and other build files, as if just cloned from the AUR. If you have personal packages, you can link them from other directories into krack-build's package directory and it will treat them as any other package.
+You should fill the package directory with other directories, each containing PKGBUILDs and other build files, as if just cloned from the AUR. If you have personal packages, you can symlink them from other directories into krack-build's package directory and krack will treat them as any other package.
 
 Krack-build can also handle packages from the Arch Build System, but you will have to checkout the package files outside of the krack-build directory tree and then link the "package/trunk" directory into the krack-build package directory. For example, to build redshift, you could create a directory ~/abs, and then run *asp checkout redshift* inside that directory. Then link the "trunk" directory of that package into the krack-build package directory with *ln -sf ~/abs/redshift/trunk ~/.local/share/krack/packages/redshift*.
 
@@ -38,7 +38,7 @@ Krack-build will only initiate an individual package build under three circumsta
 
 Krack-build will always upload a newly built package, unless a package with the same filename (and therefore version) exists in the local krack-build pkgcache.
 
-After the build cycle is finished, the *sleep cycle* begins. You can customize how long you want krack-build to sleep for by editing the "OnUnitInactiveSec=" option in the krack-build@.timer unit.
+After the build cycle is finished, the *sleep cycle* begins. You can customize how long you want krack-build to sleep for by executing *systemctl edit --full krack-build@.timer* and editing the "OnUnitInactiveSec=" option.
 
 ## KRACK-RECEIVE
 
@@ -73,15 +73,9 @@ Finally, enable and start krack-receive.service.
 
 ## BUILDER PC
 
-First, you will need to enable PAM in your sshd config. Insert or uncomment the following line in /etc/ssh/sshd_config:
+First, you will need to make an Arch chroot for building packages. You can create one with the command *sudo krackctl create-chroot* on a user on your builder PC with sudo privileges. Alternatively, you can create one manually with the *mkarchroot* command. If you choose to do it manually, make sure to install the base-devel and ccache packages in the chroot.
 
-UsePAM yes
-
-Enabling PAM is required to instatiate systemd user sessions upon login via ssh, so that the gpg-agent and ssh-agent user services work correctly, for signing and uploading packages respectively. Since UsePAM enables PasswordAuthentication and ChallengeResponseAuthentication by default, ensure you have both set to "no", if you are using keys for authentication (which you should be).
-
-You will need to make an Arch chroot for building packages. You can create one with the command *sudo krackctl create-chroot* on a user on your builder PC with sudo privileges. Alternatively, you can create one manually with the *mkarchroot* command. If you choose to do it manually, make sure to install the ccache package in the chroot.
-
-Next, you will need to create a user specifically for krack-build on the builder PC. You can name this user whatever you want to. You will also need to create a GPG and an ssh key on this user, for signing and uploading packages respectively. Ensure you can ssh from your builder user on your builder PC to your receiving user on your receiving PC. Ensure you can sign files with your new GPG key.
+Next, you will need to create a user specifically for krack-build on the builder PC. You can name this user whatever you want to ("builder" is a good default). You will also need to create a GPG and an ssh key on this user, for signing and uploading packages respectively. Ensure you can ssh from your builder user on your builder PC to your receiving user on your receiving PC. Ensure you can sign files with your new GPG key.
 
 You will need to set up sudo permissions such that your builder user can use makechrootpkg and arch-nspawn (to update the build chroot) without having to enter a password. Additionally, as of devtools-20211129, you must allow your builder user to keep the BUILDTOOL and BUILDTOOLVER environment variables when using sudo. You can do this by adding the following lines to /etc/sudoers:
 
@@ -98,7 +92,7 @@ Finally, you will need to edit /etc/krack/build.conf for your specific setup:
 
 ## LAST STEP
 
-Krack-build runs automatically via a systemd timer. This is the intended way of using this software. You can start it with the command *sudo systemctl enable --now krack-build@builder-user.timer*. Make sure to replace *builder-user* with the name of your builder user you chose.
+Krack-build runs automatically via a systemd timer. This is the intended way of using this software. You can start it with the command *systemctl enable --now krack-build@builder-user.timer*. Make sure to replace *builder-user* with the name of your builder user you chose.
 
 If you run *systemctl status krack-build@builder-user.service*, it should be napping, since you haven't added any packages to the krack package directory.
 
@@ -119,9 +113,9 @@ As the builder user, navigate to ~/.local/share/krack/packages. Here you can add
       |-- ...
 ```
 
-You can now run *sudo systemctl start krack-build@builder-user.service* wake krack-build up, and it will start building and uploading packages. See *man krackctl* for more commands.
+You can now run *systemctl restart krack-build@builder-user.service*, and it will start building and uploading packages. See *man krackctl* for more commands.
 
-You can now log out of or reboot your builder PC; krack-build will restart on boot and continually re-build packages.
+You can now log out of or reboot your builder PC; the krack-build timer will persist through reboots and continually re-build packages on a regular interval.
 
 ## CHANGING TIME BETWEEN REBUILDS
 To change the time that krack-build@.timer takes to re-trigger krack-build@.service, you can add a drop in file at NYI /// NEEDS EDIT /// TODO
@@ -165,7 +159,7 @@ You can put any valid Bash in all krack\*.sh scripts, and they will be sourced b
 These scripts should be placed in the package directory that they are affecting.
 
 ## SYSTEMD FEATURES
-By using systemd to run krack-build, you can greatly customize how and when the service runs. Perhaps most importantly, you can use systemd to restrict how much of the system resources the krack-build service uses. To add or change the krack-build service, create a directory at */etc/systemd/system/krack-build@.service.d* and add drop-in .conf files. For example, the following file:
+By using systemd to run krack-build, you can greatly customize how and when the service runs. Perhaps most importantly, you can use systemd to restrict how much of the system resources the krack-build service uses. To add a drop-in conf file to the krack-build service, run the command *systemctl edit krack-build@.service*. For example, the following file:
 
 */etc/systemd/system/krack-build@.service.d/restrict-resources.conf*
 ```
@@ -176,6 +170,8 @@ IOSchedulingPriority=7
 ```
 
 ....would restrict krack-build to only the first two logical CPUs and have lower priority process and IO scheduling. This may be useful if you run other services on your builder PC and want to prioritize those services before krack-build. See *man systemd.resource-control* and *PROCESS PROPERTIES* in *man systemd.exec* for other ways to limit system resources.
+
+After editing, make sure that you run *systemctl daemon-reload* for systemd to pick up the changes to the service.
 
 ## CCACHE COMPLIANCE
 
