@@ -134,6 +134,7 @@ print_info()
 #######################################
 build_package()
 {
+  substate "checking"
   local -r directory="$1"
   local -r currentPackage="${directory##*/}"
 
@@ -141,13 +142,12 @@ build_package()
 
   make_build_data_file "${directory}"
 
-  substate "preparing"
-
   if [[ -f "${PWD}/krack-prepull.sh" ]]; then
     print_info "Executing krack-prepull.sh"
     # shellcheck disable=SC1091
     source "${PWD}/krack-prepull.sh" || {
       important "Executing krack-prepull.sh failed for ${currentPackage}. Requesting rebuild during next build cycle"
+      krackctl request-build "${currentPackage}"
       return
     }
   fi
@@ -173,7 +173,7 @@ build_package()
   # Hopefully the user will have resolved the issue by then :)
   if [[ "${git_pull_return_code}" != 0 ]]; then
     if [[ "${directory}" != *"git"* ]]; then
-      important "Requesting rebuild during next build cycle for ${currentPackage}"
+      important "Git pull in package directory failed before building ${currentPackage}. Requesting rebuild during next build cycle"
       krackctl request-build "${currentPackage}"
     fi
 
@@ -186,6 +186,7 @@ build_package()
     # shellcheck disable=SC1091
     source "${PWD}/krack-postpull.sh" || {
       important "Executing krack-postpull.sh failed for ${currentPackage}. Requesting rebuild during next build cycle"
+      krackctl request-build "${currentPackage}"
       return
     }
   fi
@@ -318,6 +319,8 @@ build_package()
     print_info "Copying package to local krack-build pkgcache"
     cp "${packageTarball}" "${PKG_CACHE_DIR}"
 
+    substate "uploading"
+
     print_info "Signing package and uploading to ${DROPBOX_PATH}"
     gpg --default-key "${SIGNING_KEY}" --output "${packageTarball}.sig" --detach-sig "${packageTarball}"
 
@@ -424,10 +427,10 @@ state_helper()
 substate()
 {
   case "$1" in
+    checking) substate_helper "checking if ${currentPackage} needs building" ;;
     making) substate_helper "making ${currentPackage}, package (${BUILD_INDEX}/${NUM_TOTAL_PACKAGES})"
             date +%s > "${STATUS_DATE_MAKE_START_FILE}"
             ;;
-    preparing) substate_helper "preparing for build, package (${BUILD_INDEX}/${NUM_TOTAL_PACKAGES})" ;;
     uploading) substate_helper "uploading built ${currentPackage} package" ;;
   esac
 }
