@@ -134,9 +134,9 @@ print_info()
 #######################################
 build_package()
 {
-  substate "checking"
   local -r directory="$1"
   local -r currentPackage="${directory##*/}"
+  substate "checking"
 
   cd "${directory}" || exit_script_on_failure "Failed to \`cd\` into ${directory}"
 
