@@ -402,8 +402,7 @@ state()
               printf "%sInfo:%s %sNapping until next rebuild at %s...%s " "${WHITE}" "${NC}" "${PURPLE}" "${next_rebuild_time}" "${NC}"
               state_helper "sleeping until next rebuild at ${next_rebuild_time}"
               ;;
-    building) state_helper "building (started at $(date +%r))"
-              date +%s > "${STATUS_DATE_BUILD_START_FILE}"
+    building) state_helper "building package ${BUILD_INDEX}/${NUM_TOTAL_PACKAGES}, (started at $(date +%r))"
               ;;
     *) state_helper "unknown. Contact developer at dev@krathalan.net" ;;
   esac
@@ -428,7 +427,7 @@ substate()
 {
   case "$1" in
     checking) substate_helper "checking if ${currentPackage} needs building" ;;
-    making) substate_helper "making ${currentPackage}, package (${BUILD_INDEX}/${NUM_TOTAL_PACKAGES})"
+    making) substate_helper "making ${currentPackage}"
             date +%s > "${STATUS_DATE_MAKE_START_FILE}"
             ;;
     uploading) substate_helper "uploading built ${currentPackage} package" ;;
@@ -478,13 +477,16 @@ arch-nspawn "${MAKECHROOTPKG_DIR}/root" pacman -Syu --noconfirm
 # Get number of packages in ${MASTER_BUILD_DIR}
 readonly NUM_TOTAL_PACKAGES="$(( $(find -L "${MASTER_BUILD_DIR}" -maxdepth 1 -type d | wc -l) - 1 ))"
 
-state "building"
+# Set start time for krackctl
+date +%s > "${STATUS_DATE_BUILD_START_FILE}"
+
 # Check for empty build dir (https://unix.stackexchange.com/a/202276)
 # shellcheck disable=2010
 if ls -1qA "${MASTER_BUILD_DIR:-}" | grep -q .; then
   # Run build cycle
   for pkgdir in "${MASTER_BUILD_DIR:-}"/*; do
     if [[ -d "${pkgdir}" ]]; then
+      state "building"
       build_package "${pkgdir}"
       BUILD_INDEX="$(( BUILD_INDEX + 1 ))"
     fi
