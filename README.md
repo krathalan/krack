@@ -1,6 +1,6 @@
 # krack
 
-![Image of a running krack-build instance](https://krathalan.net/krack1.webp)
+![Image of a running krack-build instance](https://krathalan.net/krack.webp)
 
 **Kra**thalan's p**ack**aging softwares. You can think of `krack` as an automated building system for the ABS/AUR, split between two machines: one that builds and sends packages, and one that receives and hosts them.
 
