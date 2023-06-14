@@ -22,15 +22,13 @@ Krack-build is the largest program of the bunch and will run via a systemd unit 
 
 The logs directory will be filled with logs containing the entirety of krack-build's output, including all of makechrootpkg's output. These logs can grow quite large, so krackctl can help you parse these logs easily and get a good feel for the health of your running krack-build instance. You can read more about krackctl in *READING LOGS*.
 
-You should fill the package directory with other directories, each containing PKGBUILDs and other build files, as if just cloned from the AUR. If you have personal packages, you can symlink them from other directories into krack-build's package directory and krack will treat them as any other package.
-
-Krack-build can also handle packages from the Arch Build System, but you will have to checkout the package files outside of the krack-build directory tree and then link the "package/trunk" directory into the krack-build package directory. For example, to build redshift, you could create a directory ~/abs, and then run *asp checkout redshift* inside that directory. Then link the "trunk" directory of that package into the krack-build package directory with *ln -sf ~/abs/redshift/trunk ~/.local/share/krack/packages/redshift*.
+You should fill the package directory with other directories, each containing PKGBUILDs and other build files, as if just cloned from the AUR. If you have personal packages, you can symlink them from other directories into krack-build's package directory and krack will treat them as any other package. Krack-build can also handle packages from the Arch Build System.
 
 The pkgcache directory will contain the latest built package for every package in the package directory, if it has been built at least once.
 
-Immediately after starting krack-build, it will begin the *build cycle*, checking in each package directory if it should build that package.
+Immediately after krack-build starts, it will begin the *build cycle*, checking in each package directory if it should build that package.
 
-Krack-build will only initiate an individual package build under three circumstances:
+Krack-build will only initiate an individual package build if at least one of three circumstances is met:
 
 . New commit(s) were pulled in via "git pull"
 . The package name ends in "-git"
@@ -54,7 +52,7 @@ Krackctl can be used on the builder PC, as the builder user, to control the runn
 
 ## RECEIVER PC
 
-If you haven't yet already, set up a pacman repository at the desired directory on your receiver PC. You can then host this directory with web server software like Nginx or Apache. The instructions for both of these steps are outside the scope of this man page.
+If you haven't yet already, set up a pacman repository at the desired directory on your receiver PC. You can then host this directory with an HTTP server like Nginx or Apache. The instructions for both of these steps are outside the scope of this man page.
 
 After that, you will need to create a user with the username "krack-receive" specifically for receiving packages. Ensure that you can ssh into this user, via SSH keys, from your builder user on the builder PC. Create a directory "package-dropbox" in this user's home directory to act as a dropbox where packages will be rsync'ed to from the building PC. 
 
@@ -118,9 +116,11 @@ You can now run *systemctl restart krack-build@builder-user.service*, and it wil
 You can now log out of or reboot your builder PC; the krack-build timer will persist through reboots and continually re-build packages on a regular interval.
 
 ## CHANGING TIME BETWEEN REBUILDS
-To change the time that krack-build@.timer takes to re-trigger krack-build@.service, you can add a drop in file at NYI /// NEEDS EDIT /// TODO
+To change the time that krack-build@.timer takes to re-trigger krack-build@.service, you can run the following command:
 
-You can customize how long you want krack-build to sleep for by editing the "OnUnitInactiveSec=" option in the krack-build@.timer unit.
+$ systemctl edit --full krack-build@builder-user.timer
+
+Then edit the "OnUnitInactiveSec=" option.
 
 # OTHER
 

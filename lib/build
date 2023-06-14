@@ -18,9 +18,8 @@
 # See https://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_pipefail/
 set -Eeuo pipefail
 
-# Kill possible waiting sleep process if krack-build is terminated
-trap "clean_up && state death && kill 0" SIGINT
-trap "clean_up" EXIT
+# Ensure temporary directory is always cleaned
+trap "clean_up" EXIT SIGINT
 
 # -----------------------------------------
 # ----------- Program variables -----------
@@ -89,6 +88,8 @@ clean_pkgbuild_dirs()
 clean_up()
 {
   rm -rf "${TMP_DIR}"
+  # Fix issue with gpg-agent staying open and preventing rebuilds from occurring
+  pkill gpg-agent
 }
 
 #######################################

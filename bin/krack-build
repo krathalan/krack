@@ -9,9 +9,49 @@
 # Source a lot of common (between krack scripts) variables
 # shellcheck disable=SC1091
 source /usr/lib/krack/common
+# Source user config
+source /etc/krack/build.conf
 
 set -Eeuo pipefail
-CURRENT_LOG_FILE="${LOG_DIR}/$(date +"%m-%d-%Y_%s").log"
-printf "%s" "${CURRENT_LOG_FILE}" > "${STATUS_CURRENT_LOG_FILE}"
+
+# Ensure:
+# - logfile is always saved to disk even if the program crashes or is stopped via systemctl stop krack-build@.service
+# - temporary directory is always removed
+trap "clean_up" EXIT SIGINT
+clean_up()
+{
+  # Compress the finished temporary log file
+  ${compressionAlgorithm} "${CURRENT_LOG_FILE}"
+  # Remove uncompressed file
+  rm -f "${CURRENT_LOG_FILE}"
+  # Save compressed file to disk
+  mv "${CURRENT_LOG_FILE}"* "${LOG_DIR}"
+  # Remove temporary directory
+  rm -rf "${TMP_DIR}"
+}
+
+# Use `brotli -1` if LOG_COMPRESSION_ALGORITHM is unset or missing in /etc/krack/build.conf
+compressionAlgorithm="${LOG_COMPRESSION_ALGORITHM:-brotli -1}"
+
+# Compress old log files
+for logfile in "${LOG_DIR}"/*.log; do
+  if [[ -f "${logfile}" ]]; then
+    ${compressionAlgorithm} "${logfile}"
+  fi
+done
+
+# Make temporary directory to hold current log until it can be compressed and saved to disk
+TMP_DIR="$(mktemp -d -t "krack-build-log_XXXXXXXX")"
+readonly TMP_DIR
+
+# Create temporary log file
+CURRENT_LOG_FILE="${TMP_DIR}/$(date +"%m-%d-%Y_%s").log"
+readonly CURRENT_LOG_FILE
 touch "${CURRENT_LOG_FILE}"
+
+# Save log file location to STATUS_CURRENT_LOG_FILE for krackctl status
+printf "%s" "${CURRENT_LOG_FILE}" > "${STATUS_CURRENT_LOG_FILE}"
+
+# Start the build script, saving all output to CURRENT_LOG_FILE in the temporary directory
+# The log file should still be saved if this script exits prematurely
 bash /usr/lib/krack/build "$@" | tee -a "${CURRENT_LOG_FILE}"
