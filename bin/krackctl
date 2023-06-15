@@ -251,20 +251,27 @@ status()
   printf "\n"
   printf "%sLatest important messages, from most to least recent:%s\n%s\n" "${CYAN}" "${NC}" "$(tail -n8 "${STATUS_IMPORTANT_MESSAGE_FILE}" | tac)"
 
-  printf "%sCurrent log file:%s %s\n" "${CYAN}" "${NC}" "$(find "${LOG_DIR}" -type f -printf '%T@ %p\n' | sort -n | tail -1 | cut -f2- -d" ")"
+  # If temp log file exists, e.g. if krack-build is running:
+  if [[ -f "${STATUS_CURRENT_LOG_FILE}" ]]; then
+    printf "%sCurrent log file:%s %s\n" "${CYAN}" "${NC}" "${STATUS_CURRENT_LOG_FILE}"
 
-  # If user specified how many lines of log to show, use that
-  # otherwise default to 10
-  if [[ $# -gt 1 ]]; then
-    shift
-    local -r logLinesToWatch="$1"
+    # If user specified how many lines of log to show, use that
+    # otherwise default to 10
+    if [[ $# -gt 1 ]]; then
+      shift
+      local -r logLinesToWatch="$1"
+    else
+      local -r logLinesToWatch="10"
+    fi
+
+    local -r terminalWidth="$(tput cols)"
+
+    printf "%sLatest log entries:%s\n%s\n" "${CYAN}" "${NC}" "$(tail -n"${logLinesToWatch}" "$(<"${STATUS_CURRENT_LOG_FILE}")" | cut -c 1-"${terminalWidth}")"
   else
-    local -r logLinesToWatch="10"
+    # Otherwise, if krack-build is not running, print the last report
+    printf "%sLast build report:%s\n" "${CYAN}" "${NC}"
+    cat "${STATUS_REPORT_FILE}"
   fi
-
-  local -r terminalWidth="$(tput cols)"
-
-  printf "%sLatest log entries:%s\n%s\n" "${CYAN}" "${NC}" "$(tail -n${logLinesToWatch} "$(<"${STATUS_CURRENT_LOG_FILE}")" | cut -c 1-"${terminalWidth}")"
 }
 
 version()

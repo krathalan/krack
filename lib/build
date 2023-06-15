@@ -38,6 +38,13 @@ TMP_DIR="$(mktemp -d -t "krack-build_XXXXXXXX")"
 readonly TMP_DIR
 readonly TMP_LOG="${TMP_DIR}/tmp.log"
 
+# Used to keep track of build outcomes to generate a build cycle report at the end
+# up-to-date/not built, failed to build, built successfully and not uploaded, built successfully and uploaded
+packagesUpToDate=()
+packagesFailedToBuild=()
+packagesBuiltNotUploaded=()
+packagesBuiltAndUploaded=()
+
 # Used to print build cycle progress
 BUILD_INDEX=1
 
@@ -197,6 +204,10 @@ build_package()
     print_info "Build was requested manually; proceeding with build"
   elif [[ "${gitOutput}" == *"Already up to date."* ]] && [[ "${directory}" != *"git"* ]]; then
     print_info "No need to build ${currentPackage}, it is already up-to-date and is not a -git package; skipping"
+
+    # Add to build cycle report
+    packagesUpToDate+=("${currentPackage}")
+
     return
   fi
 
@@ -261,6 +272,10 @@ build_package()
       print_info "Skipping postbuild script due to build failure"
 
     print_info "Continuing to the next build"
+
+    # Add to build cycle report
+    packagesFailedToBuild+=("${currentPackage}")
+
     return
   fi
 
@@ -314,6 +329,10 @@ build_package()
 
     if [[ -f "${PKG_CACHE_DIR}/${packageTarball##*/}" ]]; then
       print_info "Package ${currentPackage} with the same version is already in the krack pkgcache; the cat is mildly annoyed 😾"
+
+      # Add to build cycle report
+      packagesBuiltNotUploaded+=("${currentPackage}")
+
       continue
     fi
 
@@ -330,6 +349,9 @@ build_package()
     rsync -a --progress "${packageTarball}" "${packageTarball}.sig" "krack-receive@${DROPBOX_PATH}:/home/krack-receive/package-dropbox"
 
     print_info "Package ${currentPackage} built and uploaded successfully; please give your cat a treat 😻"
+    
+    # Add to build cycle report
+    packagesBuiltAndUploaded+=("${currentPackage}")
   done
 }
 
@@ -440,6 +462,39 @@ substate_helper()
   printf "%s" "$1" > "${STATUS_SUBSTATE_FILE}"
 }
 
+#######################################
+# Generates a final build cycle report.
+# Globals:
+#   STATUS_DATE_BUILD_START_FILE
+#   packagesBuiltAndUploaded
+#   packagesBuiltNotUploaded
+#   packagesFailedToBuild
+#   packagesUpToDate
+# Arguments:
+#   none
+# Returns:
+#   build cycle report
+#######################################
+generate_report()
+{
+  # Calculate length of build cycle 
+  local -r startTimeUnix="$(<"${STATUS_DATE_BUILD_START_FILE}")"
+  local -r timeNowUnix="$(date +%s)"
+  local -r buildCycleLength="$(( timeNowUnix - startTimeUnix ))"
+
+  printf "## Build cycle report for %s ##\n" "$(date -d @"$(cat "${STATUS_DATE_MAKE_START_FILE}")" "+%c")"
+  printf "Duration of build cycle: %s\n" "$(date -d@${buildCycleLength} -u +%Hh:%Mm:%Ss)"
+  printf "Number of packages built and uploaded successfully: %s\n" "${packagesBuiltAndUploaded#}"
+  printf "Packages: %s\n\n" "${packagesBuiltAndUploaded[@]}"
+  printf "Number of packages where the same version was rebuilt: %s\n" "${packagesBuiltNotUploaded#}"
+  printf "Packages: %s\n\n" "${packagesBuiltNotUploaded[@]}"
+  printf "Number of packages that failed to build: %s\n" "${packagesFailedToBuild#}"
+  printf "Packages: %s\n\n" "${packagesFailedToBuild[@]}"
+  printf "Number of packages not built/up-to-date: %s\n" "${packagesUpToDate#}"
+  printf "Packages: %s\n" "${packagesUpToDate[@]}"
+}
+
+
 # -----------------------------------------
 # ---------------- Script -----------------
 # -----------------------------------------
@@ -470,6 +525,9 @@ printf "nothing yet :)" > "${STATUS_IMPORTANT_MESSAGE_FILE}"
 print_info "Cleaning out pkgcache and master package directories before building"
 clean_pkgbuild_dirs
 
+# Make/empty report file to print after build cycle
+cat /dev/null > "${STATUS_REPORT_FILE}"
+
 # Update build chroot once before each build cycle, not each time
 # we build with makechrootpkg (to reduce strain on mirrors)
 print_info "Upgrading build chroot before building"
@@ -496,5 +554,7 @@ if ls -1qA "${MASTER_BUILD_DIR:-}" | grep -q .; then
 else
   print_info "There are no package directories in ${MASTER_BUILD_DIR:-}."
 fi
+
+generate_report > "${STATUS_REPORT_FILE}"
 
 state "sleeping"
