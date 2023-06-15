@@ -484,14 +484,14 @@ generate_report()
 
   printf "## Build cycle report for %s ##\n" "$(date -d @"$(cat "${STATUS_DATE_MAKE_START_FILE}")" "+%c")"
   printf "Duration of build cycle: %s\n" "$(date -d@${buildCycleLength} -u +%Hh:%Mm:%Ss)"
-  printf "Number of packages built and uploaded successfully: %s\n" "${packagesBuiltAndUploaded#}"
-  printf "Packages: %s\n\n" "${packagesBuiltAndUploaded[@]}"
-  printf "Number of packages where the same version was rebuilt: %s\n" "${packagesBuiltNotUploaded#}"
-  printf "Packages: %s\n\n" "${packagesBuiltNotUploaded[@]}"
-  printf "Number of packages that failed to build: %s\n" "${packagesFailedToBuild#}"
-  printf "Packages: %s\n\n" "${packagesFailedToBuild[@]}"
-  printf "Number of packages not built/up-to-date: %s\n" "${packagesUpToDate#}"
-  printf "Packages: %s\n" "${packagesUpToDate[@]}"
+  printf "Number of packages built and uploaded successfully: %s\n" "${#packagesBuiltAndUploaded[@]}"
+  printf "Packages: %s\n\n" "${packagesBuiltAndUploaded[*]}"
+  printf "Number of packages where the same version was rebuilt: %s\n" "${#packagesBuiltNotUploaded[@]}"
+  printf "Packages: %s\n\n" "${packagesBuiltNotUploaded[*]}"
+  printf "Number of packages that failed to build: %s\n" "${#packagesFailedToBuild[@]}"
+  printf "Packages: %s\n\n" "${packagesFailedToBuild[*]}"
+  printf "Number of packages not built/up-to-date: %s\n" "${#packagesUpToDate[@]}"
+  printf "Packages: %s\n" "${packagesUpToDate[*]}"
 }
 
 

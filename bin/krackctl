@@ -252,8 +252,8 @@ status()
   printf "%sLatest important messages, from most to least recent:%s\n%s\n" "${CYAN}" "${NC}" "$(tail -n8 "${STATUS_IMPORTANT_MESSAGE_FILE}" | tac)"
 
   # If temp log file exists, e.g. if krack-build is running:
-  if [[ -f "${STATUS_CURRENT_LOG_FILE}" ]]; then
-    printf "%sCurrent log file:%s %s\n" "${CYAN}" "${NC}" "${STATUS_CURRENT_LOG_FILE}"
+  if [[ -f "cat ${STATUS_CURRENT_LOG_FILE}" ]]; then
+    printf "%sCurrent log file:%s %s\n" "${CYAN}" "${NC}" "cat ${STATUS_CURRENT_LOG_FILE}"
 
     # If user specified how many lines of log to show, use that
     # otherwise default to 10
