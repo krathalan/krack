@@ -338,7 +338,7 @@ watch_status()
   # are being printed by the "latest important messages" section
   local terminalHeight
   terminalHeight=$(tput lines)
-  local -r baseLinesUsed="7" # Lines that are always printed, e.g. "Status: "
+  local -r baseLinesUsed="8" # Lines that are always printed, e.g. "Status: "
   local numImportantMessges
   numImportantMessges="$(wc -l "${STATUS_IMPORTANT_MESSAGE_FILE}" | cut -d' ' -f1)"
 
