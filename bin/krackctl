@@ -44,6 +44,13 @@ print_info()
   printf "%sInfo:%s %s\n" "${WHITE}" "${NC}" "$1"
 }
 
+clean_up()
+{
+  if [[ -d "${tmpdir}" ]]; then
+    rm -rf "${tmpdir}"
+  fi
+}
+
 build_all()
 {
   touch "${DATA_DIR}"/packages/*/krack-request-build
@@ -214,7 +221,16 @@ status()
   [[ ! -d "${STATUS_DIR}" ]] &&
     exit_script_on_failure "Status files not found. Have you ran krack-build yet?"
 
-  printf "%sState:%s %s" "${CYAN}" "${NC}" "$(<"${STATUS_STATE_FILE}")"
+  # If temp log file exists, e.g. if krack-build is running:
+  if [[ -f "$(cat "${STATUS_CURRENT_LOG_FILE}")" ]]; then
+    printf "%sState:%s %s" "${CYAN}" "${NC}" "$(<"${STATUS_STATE_FILE}")"
+  else
+    # Otherwise, if krack-build is not running, print time until next trigger
+    local nextTrigger
+    nextTrigger="$(systemctl status krack-build@builder.timer | grep -i "Trigger:")"
+    nextTrigger="${nextTrigger##*Trigger: }"
+    printf "%sState:%s sleeping until next rebuild at %s" "${CYAN}" "${NC}" "${nextTrigger}"
+  fi
 
   if grep -q building "${STATUS_STATE_FILE}"; then
     # Calculate how long state has been "building"
@@ -301,7 +317,7 @@ watch_status()
   local -r tmpdir="$(mktemp -d -t "${SCRIPT_NAME}_XXXXXXXX")"
   local -r tmpfile="${tmpdir}/watch-status"
 
-  trap 'rm -rf ${tmpdir}' INT SIGINT EXIT
+  trap "clean_up" INT SIGINT EXIT
 
   # To fill up the terminal completely and without cutting anything off the top,
   # we need to figure out (1) how many lines are available, and (2) how many lines
@@ -341,19 +357,19 @@ clear_all_stats()
   true
 }
 
-report()
+print_stats()
 {
   local -r tmpdir="$(mktemp -d -t "${SCRIPT_NAME}_XXXXXXXX")"
-  local -r tmpfile="${tmpdir}/report"
+  local -r tmpfile="${tmpdir}/stats"
 
-  trap 'rm -rf ${tmpdir}' INT SIGINT EXIT
+  trap "clean_up" INT SIGINT EXIT
 
   for package in "${MASTER_BUILD_DIR}"/*; do
-    report_helper "${package}" >> "${tmpfile}"
+    print_stats_helper "${package}" >> "${tmpfile}"
   done
 
   if command -v bat &> /dev/null; then
-    krackPager="bat"
+    krackPager="${PAGER:-bat}"
   else
     krackPager="${PAGER:-less}"
   fi
@@ -362,7 +378,7 @@ report()
 }
 
 # $1: package directory
-report_helper()
+print_stats_helper()
 {
   if [[ ! -f "$1/.krack-data.json" ]]; then
     return
@@ -413,7 +429,7 @@ case "$1" in
   failed-builds) failed_builds ;;
   list-diffs) list_diffs ;;
   review-diffs) review_diffs ;;
-  report) report ;;
+  stats) print_stats ;;
   request-build) request_build "$@" ;;
   pending-builds) pending_builds ;;
   cancel-all-requests) cancel_all_requests ;;

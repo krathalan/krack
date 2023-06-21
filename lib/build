@@ -482,16 +482,21 @@ generate_report()
   local -r timeNowUnix="$(date +%s)"
   local -r buildCycleLength="$(( timeNowUnix - startTimeUnix ))"
 
+  # Calclate package percentages
+  local -r percentBuiltAndUploaded="$(printf "result = (%s / %s) * 100; scale=2; result / 1\n" "${#packagesBuiltAndUploaded[@]}" "${NUM_TOTAL_PACKAGES}" | bc -l)"
+  local -r percentBuiltNotUploaded="$(printf "result = (%s / %s) * 100; scale=2; result / 1\n" "${#packagesBuiltAndUploaded[@]}" "${NUM_TOTAL_PACKAGES}" | bc -l)"
+  local -r percentFailedToBuild="$(printf "result = (%s / %s) * 100; scale=2; result / 1\n" "${#packagesBuiltAndUploaded[@]}" "${NUM_TOTAL_PACKAGES}" | bc -l)"
+
   printf "## Build cycle report for %s ##\n" "$(date -d @"$(cat "${STATUS_DATE_MAKE_START_FILE}")" "+%c")"
-  printf "Duration of build cycle: %s\n" "$(date -d@${buildCycleLength} -u +%Hh:%Mm:%Ss)"
+  printf "Total number of packages: %s\n" "${NUM_TOTAL_PACKAGES}"
+  printf "Duration of build cycle: %s\n\n" "$(date -d@${buildCycleLength} -u +%Hh:%Mm:%Ss)"
   printf "Number of packages built and uploaded successfully: %s\n" "${#packagesBuiltAndUploaded[@]}"
-  printf "Packages: %s\n\n" "${packagesBuiltAndUploaded[*]}"
+  printf "Packages: %s (%s%%)\n\n" "${packagesBuiltAndUploaded[*]}" "${percentBuiltAndUploaded}"
   printf "Number of packages where the same version was rebuilt: %s\n" "${#packagesBuiltNotUploaded[@]}"
-  printf "Packages: %s\n\n" "${packagesBuiltNotUploaded[*]}"
+  printf "Packages: %s (%s%%)\n\n" "${packagesBuiltNotUploaded[*]}" "${percentBuiltNotUploaded}"
   printf "Number of packages that failed to build: %s\n" "${#packagesFailedToBuild[@]}"
-  printf "Packages: %s\n\n" "${packagesFailedToBuild[*]}"
+  printf "Packages: %s (%s%%)\n\n" "${packagesFailedToBuild[*]}" "${percentFailedToBuild}"
   printf "Number of packages not built/up-to-date: %s\n" "${#packagesUpToDate[@]}"
-  printf "Packages: %s\n" "${packagesUpToDate[*]}"
 }
 
 

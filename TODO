@@ -6,6 +6,8 @@ Todo:
 - fix log compression in the build users home directory
 
 Done:
-Save last build time of package and report it when building a new package.
+Fixed log compression
 
-Add a feature that saves each output of makechrootpkg to a temporary log file. If the build fails, move the temp log to a permanent directory and give it a unique build fail ID for reference in important messages and journalctl -p err messages.
+Added save last build time of package and report it when building a new package.
+
+Added a feature that saves each output of makechrootpkg to a temporary log file. If the build fails, move the temp log to a permanent directory and give it a unique build fail ID for reference in important messages and journalctl -p err messages.

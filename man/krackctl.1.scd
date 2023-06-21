@@ -28,6 +28,9 @@ krackctl *review-diffs*
 krackctl *pending-builds*
 	Lists the number of packages with a 'krack-request-build' file in their package directory. In other words, the list of packages that are guaranteed to be built the next time krack-build checks their up-to-date status.
 
+krackctl *stats*
+	Prints stats (average build time, number of times built, etc.) for all packages.
+
 krackctl *status* _loglines_
 	Display the current state of the running krack-build, as well as the latest _loglines_ number of log lines. If you don't specify the number of _loglines_, the latest 10 lines will be displayed.
 
