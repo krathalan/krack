@@ -218,29 +218,38 @@ status()
   local timeNowUnix
   local dateDiff
   local -r terminalWidth="$(tput cols)"
+  local -r terminalWidthPlusColors="$((terminalWidth + 17))"
 
   [[ ! -d "${STATUS_DIR}" ]] &&
     exit_script_on_failure "Status files not found. Have you ran krack-build yet?"
 
+  # Use a variable to print lines to easily cut output to terminal width
+  local toPrint
+
   # If temp log file exists, e.g. if krack-build is running:
   if [[ -f "$(cat "${STATUS_CURRENT_LOG_FILE}")" ]]; then
-    printf "%sState:%s %s" "${CYAN}" "${NC}" "$(<"${STATUS_STATE_FILE}")"
+    toPrint="$(printf "%sState:%s %s" "${CYAN}" "${NC}" "$(<"${STATUS_STATE_FILE}")")"
+
+    # If build cycle is in state "building"
+    if grep -q building "${STATUS_STATE_FILE}"; then
+      # Calculate how long state has been "building"
+      startTimeUnix="$(<"${STATUS_DATE_BUILD_START_FILE}")"
+      timeNowUnix="$(date +%s)"
+      dateDiff="$(( timeNowUnix - startTimeUnix ))"
+      toPrint="${toPrint}$(printf ", running for %s" "$(date -d@"${dateDiff}" -u +%Hh:%Mm:%Ss)")"
+    fi
+
+    cut -c 1-"${terminalWidthPlusColors}" <<< "${toPrint}"
   else
     # Otherwise, if krack-build is not running, print time until next trigger
     local nextTrigger
     nextTrigger="$(systemctl status krack-build@builder.timer | grep -i "Trigger:")"
     nextTrigger="${nextTrigger##*Trigger: }"
-    printf "%sState:%s sleeping until next rebuild at %s" "${CYAN}" "${NC}" "${nextTrigger}"
+    printf "%sState:%s sleeping until next rebuild at %s" "${CYAN}" "${NC}" "${nextTrigger}" | cut -c 1-"${terminalWidthPlusColors}"
   fi
 
   if grep -q building "${STATUS_STATE_FILE}"; then
-    # Calculate how long state has been "building"
-    startTimeUnix="$(<"${STATUS_DATE_BUILD_START_FILE}")"
-    timeNowUnix="$(date +%s)"
-    dateDiff="$(( timeNowUnix - startTimeUnix ))"
-    printf ", running for %s" "$(date -d@${dateDiff} -u +%Hh:%Mm:%Ss)"
-
-    printf "\n%sSystem stats:%s loadavg %s" "${CYAN}" "${NC}" "$(cut -d' ' -f1-3 < /proc/loadavg)"
+    toPrint="$(printf "%sSystem stats:%s loadavg %s" "${CYAN}" "${NC}" "$(cut -d' ' -f1-3 < /proc/loadavg)")"
 
     # Determine CPU temperature (intel/amd)
     if command -v sensors &> /dev/null; then
@@ -252,10 +261,12 @@ status()
         cpuTemp="$(sensors | grep Tdie | cut -d' ' -f10)"
       fi
 
-      printf "; CPU temp %s" "${cpuTemp}"
+      toPrint="${toPrint}$(printf "; CPU temp %s" "${cpuTemp}")"
     fi
 
-    printf "\n%sSubstate:%s %s" "${CYAN}" "${NC}" "$(<"${STATUS_SUBSTATE_FILE}")"
+    cut -c 1-"${terminalWidthPlusColors}" <<< "${toPrint}"
+
+    toPrint="$(printf "%sSubstate:%s %s" "${CYAN}" "${NC}" "$(<"${STATUS_SUBSTATE_FILE}")")"
     
     if grep -q making "${STATUS_SUBSTATE_FILE}"; then
       # Calculate how long state has been "making" and report last build time
@@ -276,16 +287,17 @@ status()
         averageBuildTime="time unknown"
       fi
       
-      printf ", running for %s (avg build %s)" "$(date -d@${dateDiff} -u +%Hh:%Mm:%Ss)" "${averageBuildTime}"
+      toPrint="${toPrint}$(printf ", running for %s (avg build %s)" "$(date -d@${dateDiff} -u +%Hh:%Mm:%Ss)" "${averageBuildTime}")"
     fi
-  fi
 
-  printf "\n"
+    cut -c 1-"${terminalWidthPlusColors}" <<< "${toPrint}"
+  fi
+  
   printf "%sLatest important messages, from most to least recent:%s\n%s\n" "${CYAN}" "${NC}" "$(tail -n8 "${STATUS_IMPORTANT_MESSAGE_FILE}" | tac | cut -c 1-"${terminalWidth}")"
 
   # If temp log file exists, e.g. if krack-build is running:
   if [[ -f "$(cat "${STATUS_CURRENT_LOG_FILE}")" ]]; then
-    printf "%sCurrent log file:%s %s\n" "${CYAN}" "${NC}" "$(cat "${STATUS_CURRENT_LOG_FILE}")"
+    printf "%sCurrent log file:%s %s\n" "${CYAN}" "${NC}" "$(cat "${STATUS_CURRENT_LOG_FILE}")" | cut -c 1-"${terminalWidthPlusColors}"
 
     # If user specified how many lines of log to show, use that
     # otherwise default to 10
