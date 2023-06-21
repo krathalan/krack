@@ -217,6 +217,7 @@ status()
   local startTimeUnix
   local timeNowUnix
   local dateDiff
+  local -r terminalWidth="$(tput cols)"
 
   [[ ! -d "${STATUS_DIR}" ]] &&
     exit_script_on_failure "Status files not found. Have you ran krack-build yet?"
@@ -238,6 +239,21 @@ status()
     timeNowUnix="$(date +%s)"
     dateDiff="$(( timeNowUnix - startTimeUnix ))"
     printf ", running for %s" "$(date -d@${dateDiff} -u +%Hh:%Mm:%Ss)"
+
+    printf "\n%sSystem stats:%s loadavg %s" "${CYAN}" "${NC}" "$(cut -d' ' -f1-3 < /proc/loadavg)"
+
+    # Determine CPU temperature (intel/amd)
+    if command -v sensors &> /dev/null; then
+      local cpuTemp
+      
+      if sensors | grep -q Package; then
+        cpuTemp="$(sensors | grep Package | cut -d' ' -f5)"
+      elif sensors | grep -q Tdie; then
+        cpuTemp="$(sensors | grep Tdie | cut -d' ' -f10)"
+      fi
+
+      printf "; CPU temp %s" "${cpuTemp}"
+    fi
 
     printf "\n%sSubstate:%s %s" "${CYAN}" "${NC}" "$(<"${STATUS_SUBSTATE_FILE}")"
     
@@ -265,7 +281,7 @@ status()
   fi
 
   printf "\n"
-  printf "%sLatest important messages, from most to least recent:%s\n%s\n" "${CYAN}" "${NC}" "$(tail -n8 "${STATUS_IMPORTANT_MESSAGE_FILE}" | tac)"
+  printf "%sLatest important messages, from most to least recent:%s\n%s\n" "${CYAN}" "${NC}" "$(tail -n8 "${STATUS_IMPORTANT_MESSAGE_FILE}" | tac | cut -c 1-"${terminalWidth}")"
 
   # If temp log file exists, e.g. if krack-build is running:
   if [[ -f "$(cat "${STATUS_CURRENT_LOG_FILE}")" ]]; then
@@ -279,8 +295,6 @@ status()
     else
       local -r logLinesToWatch="10"
     fi
-
-    local -r terminalWidth="$(tput cols)"
 
     printf "%sLatest log entries:%s\n%s\n" "${CYAN}" "${NC}" "$(tail -n"${logLinesToWatch}" "$(<"${STATUS_CURRENT_LOG_FILE}")" | cut -c 1-"${terminalWidth}")"
   else
@@ -322,7 +336,8 @@ watch_status()
   # To fill up the terminal completely and without cutting anything off the top,
   # we need to figure out (1) how many lines are available, and (2) how many lines
   # are being printed by the "latest important messages" section
-  local -r terminalHeight=$(tput lines)
+  local terminalHeight
+  terminalHeight=$(tput lines)
   local -r baseLinesUsed="7" # Lines that are always printed, e.g. "Status: "
   local numImportantMessges
   numImportantMessges="$(wc -l "${STATUS_IMPORTANT_MESSAGE_FILE}" | cut -d' ' -f1)"
@@ -348,6 +363,7 @@ watch_status()
 
     local log_display=$(( terminalHeight - baseLinesUsed - numImportantMessges ))
     sleep 1
+    terminalHeight=$(tput lines)
   done
 }
 
