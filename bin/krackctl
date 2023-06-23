@@ -254,11 +254,21 @@ status()
     # Determine CPU temperature (intel/amd)
     if command -v sensors &> /dev/null; then
       local cpuTemp
+      local sensorsOutput
+      sensorsOutput="$(sensors)"
       
-      if sensors | grep -q Package; then
-        cpuTemp="$(sensors | grep Package | cut -d' ' -f5)"
-      elif sensors | grep -q Tdie; then
-        cpuTemp="$(sensors | grep Tdie | cut -d' ' -f10)"
+      if printf "%s" "${sensorsOutput}" | grep -q Package; then
+        cpuTemp="$(printf "%s" "${sensorsOutput}" | grep Package | cut -d' ' -f5)"
+      elif printf "%s" "${sensorsOutput}" | grep -q Tdie; then
+        cpuTemp="$(printf "%s" "${sensorsOutput}" | grep Tdie | cut -d' ' -f10)"
+        if printf "%s" "${sensorsOutput}" | grep -q SVI2_P_Core; then
+          local wattages
+          mapfile -t wattages <<< "$(printf "%s" "${sensorsOutput}" | grep _P_ | sed 's/  */ /g' | cut -d' ' -f2)"
+          readonly wattages
+          local -r totalWattage="$(printf "scale=2; %s + %s\n" "${wattages[0]}" "${wattages[1]}" | bc -l )"
+
+          cpuTemp="${cpuTemp}; ${totalWattage} W"
+        fi
       fi
 
       toPrint="${toPrint}$(printf "; CPU temp %s" "${cpuTemp}")"
@@ -374,7 +384,7 @@ watch_status()
     fi
 
     local log_display=$(( terminalHeight - baseLinesUsed - numImportantMessges ))
-    sleep 1
+    sleep 2
     terminalHeight=$(tput lines)
   done
 }
