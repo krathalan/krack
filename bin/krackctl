@@ -236,7 +236,7 @@ status()
       startTimeUnix="$(<"${STATUS_DATE_BUILD_START_FILE}")"
       timeNowUnix="$(date +%s)"
       dateDiff="$(( timeNowUnix - startTimeUnix ))"
-      toPrint="${toPrint}$(printf ", running for %s" "$(date -d@"${dateDiff}" -u +%Hh:%Mm:%Ss)")"
+      toPrint="$(printf "%s, running for %s" "${toPrint}" "$(date -d@"${dateDiff}" -u +%Hh:%Mm:%Ss)")"
     fi
 
     cut -c 1-"${terminalWidthPlusColors}" <<< "${toPrint}"
@@ -271,7 +271,7 @@ status()
         fi
       fi
 
-      toPrint="${toPrint}$(printf "; CPU temp %s" "${cpuTemp}")"
+      toPrint="$(printf "%s; CPU temp %s" "${toPrint}" "${cpuTemp}")"
     fi
 
     cut -c 1-"${terminalWidthPlusColors}" <<< "${toPrint}"
@@ -297,7 +297,7 @@ status()
         averageBuildTime="time unknown"
       fi
       
-      toPrint="${toPrint}$(printf ", running for %s (avg build %s)" "$(date -d@${dateDiff} -u +%Hh:%Mm:%Ss)" "${averageBuildTime}")"
+      toPrint="$(printf "%s, running for %s (avg build %s)" "${toPrint}" "$(date -d@${dateDiff} -u +%Hh:%Mm:%Ss)" "${averageBuildTime}")"
     fi
 
     cut -c 1-"${terminalWidthPlusColors}" <<< "${toPrint}"

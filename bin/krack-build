@@ -14,6 +14,10 @@ source /etc/krack/build.conf
 
 set -Eeuo pipefail
 
+# Use `brotli -1` if LOG_COMPRESSION_ALGORITHM is unset or missing in /etc/krack/build.conf
+compressionAlgorithm="${LOG_COMPRESSION_ALGORITHM:-brotli -1}"
+readonly compressionAlgorithm
+
 # Ensure:
 # - logfile is always saved to disk even if the program crashes or is stopped via systemctl stop krack-build@.service
 # - temporary directory is always removed
@@ -29,9 +33,6 @@ clean_up()
   # Remove temporary directory
   rm -rf "${TMP_DIR}"
 }
-
-# Use `brotli -1` if LOG_COMPRESSION_ALGORITHM is unset or missing in /etc/krack/build.conf
-compressionAlgorithm="${LOG_COMPRESSION_ALGORITHM:-brotli -1}"
 
 # Compress old log files
 for logfile in "${LOG_DIR}"/*.log; do
