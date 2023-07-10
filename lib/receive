@@ -147,17 +147,22 @@ print_error()
 # Test both directories to fail early if they are unwritable
 readonly testFileName=".krack-receive-test-file"
 toDie="false"
+
 if ! touch "${DROPBOX_PATH}/${testFileName}"; then
   print_error "Unable to write to ${DROPBOX_PATH}"
   toDie="true"
 fi
+
 if ! touch "${REPO_ROOT}/${testFileName}"; then
   print_error "Unable to write to ${DROPBOX_PATH}"
   toDie="true"
 fi
+
 if [[ "${toDie}" == "true" ]]; then
   exit 1
 fi
+
+rm -f "${testFileName}"
 
 print_info "Watching ${DROPBOX_PATH} for packages to add to ${REPO_ROOT}..."
 
