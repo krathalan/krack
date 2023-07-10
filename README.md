@@ -29,15 +29,21 @@ All of the **documentation** comes in the form of man pages. Before using `krack
 ### Outstanding issues
 1. No option to auto-import GPG keys for source file verification.
 2. No support for non-zstd compressed packages.
-3. No option to not use GPG package signing.
-4. No way to detect a hanging/stuck package build.
+3. No way to detect a hanging/stuck package build.
+
+Fixed: 
+- No option to not use GPG package signing.
 
 ### Project update goals
-1. Change krack-build to run on a systemd @.service/timer
-2. Implement a "rebuild" feature that bumps pkgrel by +1. This would have to track external pkgrel bumps until the pkgver increases.
+1. Implement a "rebuild" feature that bumps pkgrel by +1. This would have to track external pkgrel bumps until the pkgver increases.
+
+Done:
+- Change krack-build to run on a systemd @.service/timer.
 
 ## Installation
 Install `krack` from the AUR: https://aur.archlinux.org/packages/krack/
+
+`krack-git` is also available in my personal pkgbuilds repo: https://github.com/krathalan/pkgbuilds
 
 ## Contributing
 See [`CONTRIBUTING.md`](CONTRIBUTING.md).

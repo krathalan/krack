@@ -79,15 +79,17 @@ add_packages()
     fi
     
     # Check for signature
-    if [[ ! -f "${package}.sig" ]]; then
-      print_error "Could not locate signature for package ${package}. Removing unsigned package file..."
-      rm -f "${package}"
-      continue
+    if [[ "${REJECT_UNSIGNED_PACKAGES}" == "true" ]]; then
+      if [[ ! -f "${package}.sig" ]]; then
+        print_error "Could not locate signature for package ${package}. Removing unsigned package file..."
+        rm -f "${package}"
+        continue
+      fi
     fi
 
     # Package is valid, add to repo!
     mv "${package}" "${package}.sig" .
-    repo-add -R -n "${REPO_DB_FILE}" "${package##${DROPBOX_PATH}/}"
+    repo-add -R -n "${REPO_DB_FILE}" "${package##"${DROPBOX_PATH}"/}"
   done
   )
 
@@ -141,6 +143,21 @@ print_error()
 # -----------------------------------------
 # ---------------- Script -----------------
 # -----------------------------------------
+
+# Test both directories to fail early if they are unwritable
+readonly testFileName=".krack-receive-test-file"
+toDie="false"
+if ! touch "${DROPBOX_PATH}/${testFileName}"; then
+  print_error "Unable to write to ${DROPBOX_PATH}"
+  toDie="true"
+fi
+if ! touch "${REPO_ROOT}/${testFileName}"; then
+  print_error "Unable to write to ${DROPBOX_PATH}"
+  toDie="true"
+fi
+if [[ "${toDie}" == "true" ]]; then
+  exit 1
+fi
 
 print_info "Watching ${DROPBOX_PATH} for packages to add to ${REPO_ROOT}..."
 

@@ -69,6 +69,8 @@ Edit /etc/krack/receive.conf with your specific paths:
 
 Finally, enable and start krack-receive.service.
 
+	Note that the krack-receive systemd service configuration mounts /usr and /etc as read-only. If your pacman repository resides in one of these directories, you will need to add a drop-in conf file for the krack-receive systemd service that allows read/write access to your pacman repository path.
+
 ## BUILDER PC
 
 First, you will need to make an Arch chroot for building packages. You can create one with the command *sudo krackctl create-chroot* on a user on your builder PC with sudo privileges. Alternatively, you can create one manually with the *mkarchroot* command. If you choose to do it manually, make sure to install the base-devel and ccache packages in the chroot.
@@ -77,7 +79,7 @@ Next, you will need to create a user specifically for krack-build on the builder
 
 You will need to set up sudo permissions such that your builder user can use makechrootpkg and arch-nspawn (to update the build chroot) without having to enter a password. Additionally, as of devtools-20211129, you must allow your builder user to keep the BUILDTOOL and BUILDTOOLVER environment variables when using sudo. You can do this by adding the following lines to /etc/sudoers:
 
-builder-user ALL=(ALL) NOPASSWD:/usr/bin/makechrootpkg, /usr/bin/arch-nspawn
+	builder-user ALL=(ALL) NOPASSWD:/usr/bin/makechrootpkg, /usr/bin/arch-nspawn++
 Defaults:builder-user env_keep += "BUILDTOOL BUILDTOOLVER"
 
 Change "builder-user" in both lines to the name of your builder user you chose earlier.
