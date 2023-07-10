@@ -154,7 +154,7 @@ if ! touch "${DROPBOX_PATH}/${testFileName}" &> /dev/null; then
 fi
 
 if ! touch "${REPO_ROOT}/${testFileName}" &> /dev/null; then
-  print_error "Unable to write to ${DROPBOX_PATH}"
+  print_error "Unable to write to ${REPO_ROOT}"
   toDie="true"
 fi
 
