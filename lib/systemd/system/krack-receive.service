@@ -7,8 +7,7 @@ Description=Watches a specified dropbox for packages to add to a specified pacma
 
 [Service]
 ExecStart=/usr/lib/krack/receive
-Restart=on-failure
-RestartSec=5
+Restart=no
 
 # Hardening
 User=krack-receive

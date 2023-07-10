@@ -148,12 +148,12 @@ print_error()
 readonly testFileName=".krack-receive-test-file"
 toDie="false"
 
-if ! touch "${DROPBOX_PATH}/${testFileName}"; then
+if ! touch "${DROPBOX_PATH}/${testFileName}" &> /dev/null; then
   print_error "Unable to write to ${DROPBOX_PATH}"
   toDie="true"
 fi
 
-if ! touch "${REPO_ROOT}/${testFileName}"; then
+if ! touch "${REPO_ROOT}/${testFileName}" &> /dev/null; then
   print_error "Unable to write to ${DROPBOX_PATH}"
   toDie="true"
 fi
