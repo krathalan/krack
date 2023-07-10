@@ -39,6 +39,7 @@ SystemCallFilter=@system-service
 SystemCallFilter=~@resources @privileged
 MemoryDenyWriteExecute=yes
 NoNewPrivileges=yes
+RemoveIPC=yes
 
 [Install]
 WantedBy=default.target

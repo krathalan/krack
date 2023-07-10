@@ -341,8 +341,12 @@ build_package()
 
     substate "uploading"
 
-    print_info "Signing package and uploading to ${DROPBOX_PATH}"
-    gpg --default-key "${SIGNING_KEY}" --output "${packageTarball}.sig" --detach-sig "${packageTarball}"
+    if [[ "${SIGN_PACKAGES:-true}" == true ]]; then
+      print_info "Signing package and uploading to ${DROPBOX_PATH}"
+      gpg --default-key "${SIGNING_KEY}" --output "${packageTarball}.sig" --detach-sig "${packageTarball}"
+    else
+      print_info "Uploading to ${DROPBOX_PATH}"
+    fi
 
     # Sleep for 2 seconds; sometimes the rsync command starts before the sig file has appeared on slower devices
     sleep 2

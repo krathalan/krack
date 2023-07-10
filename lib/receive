@@ -79,7 +79,7 @@ add_packages()
     fi
     
     # Check for signature
-    if [[ "${REJECT_UNSIGNED_PACKAGES}" == "true" ]]; then
+    if [[ "${REJECT_UNSIGNED_PACKAGES:-true}" == "true" ]]; then
       if [[ ! -f "${package}.sig" ]]; then
         print_error "Could not locate signature for package ${package}. Removing unsigned package file..."
         rm -f "${package}"
