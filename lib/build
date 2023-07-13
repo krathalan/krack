@@ -283,18 +283,18 @@ build_package()
 
   # Store elapsed build time
   local -r elapsedBuildTime=$(( buildStopTime - buildStartTime ))
-  write_setting "last_build_time" "${elapsedBuildTime}" "${currentPackage}"
+  record_build_stat "last_build_time" "${elapsedBuildTime}" "${currentPackage}"
 
   # Get average time, re-average and re-write
   local averageBuildTime
   averageBuildTime="$(jq -r .average_build_time "${directory}/.krack-data.json")"
 
   if [[ "${averageBuildTime}" == "" ]]; then
-    write_setting "average_build_time" "${elapsedBuildTime}" "${currentPackage}"
+    record_build_stat "average_build_time" "${elapsedBuildTime}" "${currentPackage}"
   else
     averageBuildTime=$(( averageBuildTime + elapsedBuildTime ))
     averageBuildTime=$(( averageBuildTime / 2 ))
-    write_setting "average_build_time" "${averageBuildTime}" "${currentPackage}"
+    record_build_stat "average_build_time" "${averageBuildTime}" "${currentPackage}"
   fi
 
   # Get number of times built, increment by 1 and re-write
@@ -302,14 +302,14 @@ build_package()
   numberOfTimesBuilt="$(jq -r .number_of_times_built "${directory}/.krack-data.json")"
 
   if [[ "${numberOfTimesBuilt}" == "" ]]; then
-    write_setting "number_of_times_built" "1" "${currentPackage}"
+    record_build_stat "number_of_times_built" "1" "${currentPackage}"
   else
     numberOfTimesBuilt=$(( numberOfTimesBuilt + 1 ))
-    write_setting "number_of_times_built" "${numberOfTimesBuilt}" "${currentPackage}"
+    record_build_stat "number_of_times_built" "${numberOfTimesBuilt}" "${currentPackage}"
   fi
 
   # Store build date
-  write_setting "last_build_date" "$(date +%s)" "${currentPackage}"
+  record_build_stat "last_build_date" "$(date +%s)" "${currentPackage}"
 
   if [[ -f "${PWD}/krack-postbuild.sh" ]]; then
     print_info "Executing krack-postbuild.sh"
@@ -324,7 +324,7 @@ build_package()
     # Store built version number
     if [[ "${builtVersionNumber:-}" == "" ]]; then
       local -r builtVersionNumber="$(tar -O -I zstd -xf "${packageTarball}" .PKGINFO | grep pkgver | cut -d' ' -f3)"
-      write_setting "last_built_version" "${builtVersionNumber}" "${currentPackage}"
+      record_build_stat "last_built_version" "${builtVersionNumber}" "${currentPackage}"
     fi
 
     if [[ -f "${PKG_CACHE_DIR}/${packageTarball##*/}" ]]; then
@@ -374,15 +374,16 @@ make_build_data_file()
 }
 
 #######################################
-# Writes a setting value to the config file.
+# Records a build statistic for a specified package to that
+# package's build directory.
 # Arguments:
-#   $1: key
-#   $2: value
-#   $3: pkgname
+#   $1: key (i.e. last_built_version)
+#   $2: value (i.e. 1.4)
+#   $3: pkgname (i.e. coreutils)
 # Returns:
 #   none
 #######################################
-write_setting()
+record_build_stat()
 {
   local -r outputFile="${MASTER_BUILD_DIR}/$3/.krack-data.json"
   local -r tmpJson="$(jq ".$1 = \"$2\"" "${outputFile}")"
