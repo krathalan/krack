@@ -486,7 +486,7 @@ generate_report()
   local -r timeNowUnix="$(date +%s)"
   local -r buildCycleLength="$(( timeNowUnix - startTimeUnix ))"
 
-  # Calclate package percentages
+  # Calculate package percentages
   local -r percentBuiltAndUploaded="$(printf "result = (%s / %s) * 100; scale=2; result / 1\n" "${#packagesBuiltAndUploaded[@]}" "${NUM_TOTAL_PACKAGES}" | bc -l)"
   local -r percentBuiltNotUploaded="$(printf "result = (%s / %s) * 100; scale=2; result / 1\n" "${#packagesBuiltNotUploaded[@]}" "${NUM_TOTAL_PACKAGES}" | bc -l)"
   local -r percentFailedToBuild="$(printf "result = (%s / %s) * 100; scale=2; result / 1\n" "${#packagesFailedToBuild[@]}" "${NUM_TOTAL_PACKAGES}" | bc -l)"
