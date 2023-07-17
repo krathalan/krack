@@ -3,6 +3,7 @@ Todo:
 - More intelligently build git packages
 - Last build cycle report: during a build cycle, save status of each package to file (e.g. "up-to-date/not built, built successfully, etc") and allow user to see with `krackctl report`
 - krackctl remove-package: for removing pkgbuild dir, cached package(s), and failure logs all in one command
+- krack-receive: add option for repo-add "-v" flag to force package sig verification before updating the database
 
 Done:
 Fixed log compression
