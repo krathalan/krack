@@ -20,33 +20,33 @@ krackctl *failed-builds*
 	Lists all of the failed build logs. You can use your favorite pager to view these logs.
 
 krackctl *list-diffs*
-	Lists all of the diffs from *git pull*s in package directories, during the build cycle.
+	Lists all of the diffs from git pulls in package directories.
 
 krackctl *review-diffs*
 	Review each diff file with *bat* if installed, otherwise use $PAGER or fall back to *less*. Then asks the user if they want to delete all diff files.
 
 krackctl *pending-builds*
-	Lists the number of packages with a 'krack-request-build' file in their package directory. In other words, the list of packages that are guaranteed to be built the next time krack-build checks their up-to-date status.
+	Lists the number of packages with a 'krack-request-build' file in their package directory. In other words, the list of packages that krack guarantees to attempt to build during the next build cycle.
 
 krackctl *stats*
 	Prints stats (average build time, number of times built, etc.) for all packages.
 
 krackctl *status* _loglines_
-	Display the current state of the running krack-build, as well as the latest _loglines_ number of log lines. If you don't specify the number of _loglines_, the latest 10 lines will be displayed.
+	Display the current state of the running krack-build, as well as the latest _loglines_ number of log lines. If you don't specify the number of _loglines_, the latest 10 lines will be displayed. If the krack-build service is not running, this command will display a summary of the last build cycle.
 
 krackctl *watch-status*
-	Runs krackctl status every one second, taking up the entire terminal width and height.
+	Runs 'krackctl status' every two seconds (by default), filling the entire terminal. You can change how often the command will refresh by changing the KRACKCTL_WATCHSTATUS_INTERVAL value in /etc/krack/build.conf.
 
 ## Control
 
 krackctl *build-all*
-	Creates an empty file 'krack-request-build' in every package directory and clears the krack-build cache. This will force krack-build to build and upload every package the next time krack-build checks for each package's up-to-date status.
+	Creates an empty file 'krack-request-build' in every package directory and clears the krack-build package cache. This will force krack-build to attempt to build and upload every package during the next build cycle.
 
 krackctl *request-build* _package_
-	Creates an empty file 'krack-request-build' in the specified package's directory. This will force krack-build to build it the next time it checks for the package's up-to-date status. However, the rebuilt package will not be uploaded if the rebuilt package matches the name of a preexisting package in the local krack-build cache. You will need to delete that preexisting package for krack-build to upload the rebuilt package.
+	Creates an empty file 'krack-request-build' in the specified package's directory. This will force krack-build to attempt to build it during the next build cycle. However, the rebuilt package will not be uploaded if the rebuilt package filename matches the filename of a preexisting package in the local krack-build cache.
 
 krackctl *cancel-all-requests*
-	Deletes any 'krack-request-build' files in all package directories, cancelling any requested guaranteed package builds.
+	Deletes all 'krack-request-build' files in all package directories, cancelling all requested package builds.
 
 ## Miscellaneous
 

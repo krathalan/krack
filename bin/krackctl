@@ -26,6 +26,10 @@ set -Eeuo pipefail
 # shellcheck disable=SC1091
 source /usr/lib/krack/common
 
+# Needed for $MAKECHROOTPKG_DIR and $KRACKCTL_WATCHSTATUS_INTERVAL
+# shellcheck disable=SC1091
+source /etc/krack/build.conf
+
 # Other
 readonly SCRIPT_NAME="${0##*/}"
 
@@ -74,9 +78,6 @@ clean_logs()
 
 create_chroot()
 {
-  # shellcheck disable=SC1091
-  source /etc/krack/build.conf
-
   [[ -e "${MAKECHROOTPKG_DIR}" ]] &&
     exit_script_on_failure "Something already exists at ${MAKECHROOTPKG_DIR}."
 
@@ -384,7 +385,7 @@ watch_status()
     fi
 
     local log_display=$(( terminalHeight - baseLinesUsed - numImportantMessges ))
-    sleep 2
+    sleep "${KRACKCTL_WATCHSTATUS_INTERVAL}"
     terminalHeight=$(tput lines)
   done
 }
