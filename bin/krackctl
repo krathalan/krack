@@ -308,8 +308,6 @@ status()
 
   # If temp log file exists, e.g. if krack-build is running:
   if [[ -f "$(cat "${STATUS_CURRENT_LOG_FILE}")" ]]; then
-    printf "%sCurrent log file:%s %s\n" "${CYAN}" "${NC}" "$(cat "${STATUS_CURRENT_LOG_FILE}")" | cut -c 1-"${terminalWidthPlusColors}"
-
     # If user specified how many lines of log to show, use that
     # otherwise default to 10
     if [[ $# -gt 1 ]]; then
@@ -361,7 +359,7 @@ watch_status()
   # are being printed by the "latest important messages" section
   local terminalHeight
   terminalHeight=$(tput lines)
-  local -r baseLinesUsed="8" # Lines that are always printed, e.g. "Status: "
+  local -r baseLinesUsed="7" # Lines that are always printed, e.g. "Status: "
   local numImportantMessges
   numImportantMessges="$(wc -l "${STATUS_IMPORTANT_MESSAGE_FILE}" | cut -d' ' -f1)"
 
