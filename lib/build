@@ -44,6 +44,7 @@ packagesUpToDate=()
 packagesFailedToBuild=()
 packagesBuiltNotUploaded=()
 packagesBuiltAndUploaded=()
+packagesGitPullFailed=()
 
 # Used to print build cycle progress
 BUILD_INDEX=1
@@ -186,6 +187,8 @@ build_package()
     else
       important "Git pull in package directory failed before building ${currentPackage}. Cancelling build"
     fi
+
+    packagesGitPullFailed+=("${currentPackage}")
 
     return
   fi
@@ -493,16 +496,26 @@ generate_report()
   local -r percentBuiltNotUploaded="$(printf "result = (%s / %s) * 100; scale=2; result / 1\n" "${#packagesBuiltNotUploaded[@]}" "${NUM_TOTAL_PACKAGES}" | bc -l)"
   local -r percentFailedToBuild="$(printf "result = (%s / %s) * 100; scale=2; result / 1\n" "${#packagesFailedToBuild[@]}" "${NUM_TOTAL_PACKAGES}" | bc -l)"
   local -r percentUpToDate="$(printf "result = (%s / %s) * 100; scale=2; result / 1\n" "${#packagesUpToDate[@]}" "${NUM_TOTAL_PACKAGES}" | bc -l)"
+  local -r percentGitPullFailed="$(printf "result = (%s / %s) * 100; scale=2; result / 1\n" "${#packagesGitPullFailed[@]}" "${NUM_TOTAL_PACKAGES}" | bc -l)"
 
   printf "## Build cycle report for %s ##\n" "$(date -d @"$(cat "${STATUS_DATE_MAKE_START_FILE}")" "+%c")"
+
   printf "Total number of packages: %s\n" "${NUM_TOTAL_PACKAGES}"
+  
   printf "Duration of build cycle: %s\n\n" "$(date -d@${buildCycleLength} -u +%Hh:%Mm:%Ss)"
+
   printf "Number of packages built and uploaded successfully: %s (%s%%)\n" "${#packagesBuiltAndUploaded[@]}" "${percentBuiltAndUploaded}"
   printf "Packages: %s\n\n" "${packagesBuiltAndUploaded[*]}"
+
   printf "Number of packages where the same version was rebuilt: %s (%s%%)\n" "${#packagesBuiltNotUploaded[@]}" "${percentBuiltNotUploaded}"
   printf "Packages: %s\n\n" "${packagesBuiltNotUploaded[*]}"
+
   printf "Number of packages that failed to build: %s (%s%%)\n" "${#packagesFailedToBuild[@]}" "${percentFailedToBuild}"
   printf "Packages: %s\n\n" "${packagesFailedToBuild[*]}"
+
+  printf "Number of packages where git pull failed, preventing build: %s (%s%%)\n" "${#packagesGitPullFailed[@]}" "${percentGitPullFailed}"
+  printf "Packages: %s\n\n" "${packagesGitPullFailed[*]}"
+
   printf "Number of packages not built/up-to-date: %s (%s%%)\n" "${#packagesUpToDate[@]}" "${percentUpToDate}"
 }
 
