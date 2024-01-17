@@ -183,9 +183,10 @@ build_package()
     if [[ "${directory}" != *"git"* ]]; then
       important "Git pull in package directory failed before building ${currentPackage}. Requesting rebuild during next build cycle"
       krackctl request-build "${currentPackage}"
+    else
+      important "Git pull in package directory failed before building ${currentPackage}. Cancelling build"
     fi
 
-    important "Git pull in package directory failed before building ${currentPackage}. Cancelling build"
     return
   fi
 
