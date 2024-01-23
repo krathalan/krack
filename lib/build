@@ -507,21 +507,29 @@ generate_report()
   printf "Number of packages built and uploaded successfully: %s (%s%%)\n" "${#packagesBuiltAndUploaded[@]}" "${percentBuiltAndUploaded}"
   if [[ "${#packagesBuiltAndUploaded[@]}" != 0 ]]; then
     printf "Packages: %s\n\n" "${packagesBuiltAndUploaded[*]}"
+  else
+    printf "\n"
   fi
 
   printf "Number of packages where the same version was rebuilt: %s (%s%%)\n" "${#packagesBuiltNotUploaded[@]}" "${percentBuiltNotUploaded}"
   if [[ "${#packagesBuiltNotUploaded[@]}" != 0 ]]; then
     printf "Packages: %s\n\n" "${packagesBuiltNotUploaded[*]}"
+  else
+    printf "\n"
   fi
 
   printf "Number of packages that failed to build: %s (%s%%)\n" "${#packagesFailedToBuild[@]}" "${percentFailedToBuild}"
   if [[ "${#packagesFailedToBuild[@]}" != 0 ]]; then
     printf "Packages: %s\n\n" "${packagesFailedToBuild[*]}"
+  else
+    printf "\n"
   fi
 
   printf "Number of packages where git pull failed, preventing build: %s (%s%%)\n" "${#packagesGitPullFailed[@]}" "${percentGitPullFailed}"
   if [[ "${#packagesGitPullFailed[@]}" != 0 ]]; then
     printf "Packages: %s\n\n" "${packagesGitPullFailed[*]}"
+  else
+    printf "\n"
   fi
 
   printf "Number of packages not built/up-to-date: %s (%s%%)\n" "${#packagesUpToDate[@]}" "${percentUpToDate}"
