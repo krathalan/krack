@@ -6,6 +6,7 @@
 Description=Watches a specified dropbox for packages to add to a specified pacman repo
 
 [Service]
+Type=exec
 ExecStart=/usr/lib/krack/receive
 Restart=no
 
