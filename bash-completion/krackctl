@@ -3,7 +3,7 @@
 # Description: Bash completion file for krackctl.
 #
 # Homepage: https://github.com/krathalan/krack
-# Copyright (C) 2020-2021 Hunter Peavey
+# Copyright (C) 2020-2024 Hunter Peavey
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 # Source a lot of common (between krack scripts) variables

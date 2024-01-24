@@ -3,7 +3,7 @@
 # Description: Builds packages and sends them via rsync to a specified host.
 #
 # Homepage: https://github.com/krathalan/krack
-# Copyright (C) 2020-2023 Hunter Peavey
+# Copyright (C) 2020-2024 Hunter Peavey
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 # -----------------------------------------

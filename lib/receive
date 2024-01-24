@@ -4,7 +4,7 @@
 #              moves them to a specified pacman repo.
 #
 # Homepage: https://github.com/krathalan/krack
-# Copyright (C) 2020-2021 Hunter Peavey
+# Copyright (C) 2020-2024 Hunter Peavey
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 # -----------------------------------------
@@ -56,7 +56,7 @@ add_packages()
       fi
     done
 
-    # Take a lil nap :)
+    # If packages still loading, take a lil nap :)
     sleep 7
     # Refresh data
     local check_files=("${DROPBOX_PATH}"/*)
@@ -78,7 +78,7 @@ add_packages()
       continue
     fi
     
-    # Check for signature
+    # Check for signature if REJECT_UNSIGNED_PACKAGES=true
     if [[ "${REJECT_UNSIGNED_PACKAGES:-true}" == "true" ]]; then
       if [[ ! -f "${package}.sig" ]]; then
         print_error "Could not locate signature for package ${package}. Removing unsigned package file..."
@@ -100,7 +100,7 @@ add_packages()
 # Prints passed error message before premature exit.
 # Prints everything to >&2 (STDERR).
 # Globals:
-#   SCRIPT_NAME
+#   none
 # Arguments:
 #   $1: error message to print
 # Returns:
@@ -115,7 +115,7 @@ exit_script_on_failure()
 #######################################
 # Prints an info message.
 # Globals:
-#   SCRIPT_NAME
+#   none
 # Arguments:
 #   $1: info message to print
 # Returns:
@@ -129,7 +129,7 @@ print_info()
 #######################################
 # Prints an error message.
 # Globals:
-#   SCRIPT_NAME
+#   none
 # Arguments:
 #   $1: error message to print
 # Returns:
@@ -162,7 +162,7 @@ if [[ "${toDie}" == "true" ]]; then
   exit 1
 fi
 
-rm -f "${testFileName}"
+rm -f "${DROPBOX_PATH}/${testFileName}" "${REPO_ROOT}/${testFileName}"
 
 print_info "Watching ${DROPBOX_PATH} for packages to add to ${REPO_ROOT}..."
 

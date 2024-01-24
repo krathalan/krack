@@ -3,7 +3,7 @@
 # Description: Control script for krack-build
 #
 # Homepage: https://github.com/krathalan/krack
-# Copyright (C) 2020-2021 Hunter Peavey
+# Copyright (C) 2020-2024 Hunter Peavey
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 # -----------------------------------------
@@ -330,7 +330,7 @@ version()
   printf "%s" "\
 krack v${VERSION}
 
-Copyright (C) 2020-2021 Hunter Peavey
+Copyright (C) 2020-2024 Hunter Peavey
 
     Krack is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
