@@ -335,7 +335,11 @@ build_package()
       print_info "Package ${currentPackage} with the same version is already in the krack pkgcache; the cat is mildly annoyed 😾"
 
       # Add to build cycle report
-      packagesBuiltNotUploaded+=("${currentPackage}")
+      # Ensure not to add duplicate entries if multiple package files exist,
+      # e.g. linux*.pkg.tar.zst and linux-headers*.pkg.tar.zst
+      if [[ ! "${packagesBuiltNotUploaded[*]}" =~ ${currentPackage} ]]; then
+        packagesBuiltNotUploaded+=("${currentPackage}")
+      fi
 
       continue
     fi
@@ -359,7 +363,11 @@ build_package()
     print_info "Package ${currentPackage} built and uploaded successfully; please give your cat a treat 😻"
     
     # Add to build cycle report
-    packagesBuiltAndUploaded+=("${currentPackage}")
+    # Ensure not to add duplicate entries if multiple package files exist,
+    # e.g. linux*.pkg.tar.zst and linux-headers*.pkg.tar.zst
+    if [[ ! "${packagesBuiltAndUploaded[*]}" =~ ${currentPackage} ]]; then
+      packagesBuiltAndUploaded+=("${currentPackage}")
+    fi
   done
 }
 
