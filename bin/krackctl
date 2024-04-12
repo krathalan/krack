@@ -130,7 +130,14 @@ cancel_all_requests()
 
 failed_builds()
 {
-  printf "Failed builds:\n--------------\n"
+  # Variable is non-local for trap "clean_up"
+  tmpdir="$(mktemp -d -t "${SCRIPT_NAME}_XXXXXXXX")"
+  readonly tmpdir
+  local -r tmpfile="${tmpdir}/stats"
+
+  trap "clean_up" INT SIGINT EXIT
+
+  printf "Failed builds:\n--------------\n" >> "${tmpfile}"
 
   # Check if failed log directory is empty
   if [[ -n "$(find "${FAILED_BUILDS_LOG_DIR}" -maxdepth 0 -empty)" ]]; then
@@ -145,10 +152,12 @@ failed_builds()
     local logCreationDate
     logCreationDate="$(date -d "$(stat -c "%w" "${failedBuild}")" "+%c")"
 
-    printf "%s. %s%s%s (failed at %s%s%s)\n" "${stepCounter}" "${YELLOW}" "${failedBuild}" "${NC}" "${BLUE}" "${logCreationDate}" "${NC}"
+    printf "%s. %s%s%s (failed at %s%s%s)\n" "${stepCounter}" "${YELLOW}" "${failedBuild}" "${NC}" "${BLUE}" "${logCreationDate}" "${NC}" >> "${tmpfile}"
 
     stepCounter=$(( stepCounter + 1 ))
   done
+
+  display_output_file "${tmpfile}"
 }
 
 list_diffs()
@@ -325,6 +334,22 @@ status()
   fi
 }
 
+# The same as status(), but uses display_output_file to display output nicely
+# Used for `krackctl status` but not `krackctl watch-status`
+status_wrapper()
+{
+  # Variable is non-local for trap "clean_up"
+  tmpdir="$(mktemp -d -t "${SCRIPT_NAME}_XXXXXXXX")"
+  readonly tmpdir
+  local -r tmpfile="${tmpdir}/status-wrapper"
+
+  trap "clean_up" INT SIGINT EXIT
+
+  status > "${tmpfile}"
+
+  display_output_file "${tmpfile}"
+}
+
 version()
 {
   printf "%s" "\
@@ -349,7 +374,9 @@ Copyright (C) 2020-2024 Hunter Peavey
 
 watch_status()
 {
-  local -r tmpdir="$(mktemp -d -t "${SCRIPT_NAME}_XXXXXXXX")"
+  # Variable is non-local for trap "clean_up"
+  tmpdir="$(mktemp -d -t "${SCRIPT_NAME}_XXXXXXXX")"
+  readonly tmpdir
   local -r tmpfile="${tmpdir}/watch-status"
 
   trap "clean_up" INT SIGINT EXIT
@@ -394,24 +421,41 @@ clear_all_stats()
   true
 }
 
+# $@: packages to print stats of
+# If no arguments, print stats for all packages
 print_stats()
 {
-  local -r tmpdir="$(mktemp -d -t "${SCRIPT_NAME}_XXXXXXXX")"
+  # Variable is non-local for trap "clean_up"
+  tmpdir="$(mktemp -d -t "${SCRIPT_NAME}_XXXXXXXX")"
+  readonly tmpdir
   local -r tmpfile="${tmpdir}/stats"
 
   trap "clean_up" INT SIGINT EXIT
 
-  for package in "${MASTER_BUILD_DIR}"/*; do
-    print_stats_helper "${package}" >> "${tmpfile}"
-  done
+  shift
 
-  if command -v bat &> /dev/null; then
-    krackPager="${PAGER:-bat}"
-  else
-    krackPager="${PAGER:-less}"
+  # If no arguments, request all stats
+  if [[ $# -eq 0 ]]; then
+    for package in "${MASTER_BUILD_DIR}"/*; do
+      print_stats_helper "${package}" >> "${tmpfile}"
+    done
+
+    display_output_file "${tmpfile}"
+    return
   fi
 
-  $krackPager "${tmpfile}"
+  # If arguments, request stats for specified packages
+  while [[ $# -gt 0 ]]; do
+    if [[ ! -d "${MASTER_BUILD_DIR}/$1" ]]; then
+      printf "Package %s not found\n" "$1" >> "${tmpfile}"
+      return
+    fi
+
+    print_stats_helper "${MASTER_BUILD_DIR}/$1" >> "${tmpfile}"
+    shift
+  done
+  
+  display_output_file "${tmpfile}"
 }
 
 # $1: package directory
@@ -442,6 +486,37 @@ print_stats_helper()
   printf "Number of times built: %s\n\n" "${packageData[4]:-0}"
 }
 
+# $1: path of file to output
+display_output_file()
+{
+  # Decide how to display output:
+  # format text to wrap on words nicely;
+  # only use pager if output is longer than terminal height.
+
+  local -r formattedFile="$(fold -w "$(tput cols)" -s "$1")"
+
+  local linesInFile
+  mapfile -tn 0 linesInFile <<< "${formattedFile}"
+  local -r lengthOfOutput="${#linesInFile[@]}"
+  local -r terminalHeight=$(( $(tput lines) - 4 ))
+  local krackPager
+  
+  if [[ "${lengthOfOutput}" -lt "${terminalHeight}" ]] || [[ "${lengthOfOutput}" -eq "${terminalHeight}" ]]; then
+    printf "%s" "${formattedFile}"
+  else
+    krackPager="${PAGER:-less}"
+
+    # Ensure less displays colors properly
+    if [[ "${krackPager}" == "less" ]]; then
+      krackPager="${krackPager} -R"
+    fi
+
+    printf "%s" "${formattedFile}" | ${krackPager}
+  fi
+
+  printf "\n"
+}
+
 # -----------------------------------------
 # ---------------- Script -----------------
 # -----------------------------------------
@@ -466,11 +541,11 @@ case "$1" in
   failed-builds) failed_builds ;;
   list-diffs) list_diffs ;;
   review-diffs) review_diffs ;;
-  stats) print_stats ;;
+  stats) print_stats "$@" ;;
   request-build) request_build "$@" ;;
   pending-builds) pending_builds ;;
   cancel-all-requests) cancel_all_requests ;;
-  status) status "$@" ;;
+  status) status_wrapper ;;
   watch-status) watch_status ;;
   version) version ;;
   *) print_help ;;
