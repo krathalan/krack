@@ -543,7 +543,6 @@ generate_report()
   printf "Number of packages not built/up-to-date: %s (%s%%)\n" "${#packagesUpToDate[@]}" "${percentUpToDate}"
 }
 
-
 # -----------------------------------------
 # ---------------- Script -----------------
 # -----------------------------------------
@@ -580,7 +579,7 @@ cat /dev/null > "${STATUS_REPORT_FILE}"
 # Update build chroot once before each build cycle, not each time
 # we build with makechrootpkg (to reduce strain on mirrors)
 print_info "Upgrading build chroot before building"
-arch-nspawn "${MAKECHROOTPKG_DIR}/root" pacman -Syu --noconfirm
+arch-nspawn "${MAKECHROOTPKG_DIR}/root" pacman -Syu --noconfirm || exit_script_on_failure "Failed to update build chroot"
 
 # Get number of packages in ${MASTER_BUILD_DIR}
 readonly NUM_TOTAL_PACKAGES="$(( $(find -L "${MASTER_BUILD_DIR}" -maxdepth 1 -type d | wc -l) - 1 ))"
